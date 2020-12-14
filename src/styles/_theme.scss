@@ -1,0 +1,97 @@
+/* ADD/REMOVE/CHANGE THEMES HERE */
+
+/*// Giving the default theme a name*/
+/*@include theme-maker("default", ());*/
+
+.bg-accuenergy {
+    background: #66c6d0 !important;
+}
+
+.btn {
+  text-transform: capitalize !important;
+}
+
+.ant-table .btn {
+  border-radius: 5px;
+  margin-right: 2px;
+  margin-bottom: 1px;
+  padding: 2px 1px;
+}
+
+.ant-form-item {
+  margin-bottom: 0px;
+}
+
+.btn-default {
+    background: $accuenergy-blue;
+    border-color: $accuenergy-blue;
+    color: white;
+    &:active, &:focus, &:hover {
+        background: $accuenergy-orange;
+        border-color: $accuenergy-orange;
+        color: white;
+    }
+}
+
+.btn-grey {
+    background: #f4f4f4;
+    border-color: #f4f4f4;
+    color: #4f4c4d;
+}
+
+.well {
+    background: #fff;
+    border: none;
+}
+
+.panel-default > .panel-heading, .panel-footer {
+    background-color: #fff;
+}
+
+.form-control:focus {
+    border-color: $accuenergy-blue;
+}
+
+body {
+    min-width: 900px;
+    overflow: auto !important;
+}
+
+#container {
+    min-width: 900px;
+    overflow: auto;
+}
+
+#container > div {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+}
+
+/*#container > div > div:first-child#navbar #nav-header {
+  margin: 0;
+  margin-left: 0;
+}
+#container #nav-header {
+    margin-left: 0px;
+}
+*/
+/*#container > div > div:first-child#body {
+  margin-top: 0;
+  padding-top: 25px;
+}
+*/
+#body {
+  /*padding: 20px 40px;*/
+  position: absolute;
+  overflow: auto;
+  top: 100px;
+  width: 100% ;
+  bottom: 60px;
+}
+#footer-container {
+  bottom: 0;
+  right: 0px;
+  position: absolute;
+  /*width: 100%;*/
+}

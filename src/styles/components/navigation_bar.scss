@@ -1,0 +1,83 @@
+.notification-badge {
+    background-color: $accuenergy-blue;
+    color: white;
+}
+
+#nav-header > .container-fluid {
+    display: flex;
+    justify-content: space-between;
+    padding: 0;
+}
+
+.nav-bar {
+    font-size: 15px;
+
+    .dropdown-menu {
+        top: calc(#{$navbar-height} / 2 + 15px);
+        @media(max-width: 500px) {
+            // below this width, .dropdown has position: initial
+            // so 'top' has no effect
+            transform: translateY(7px)
+        }
+    }
+
+    height: $navbar-height;
+
+   /* * {
+        color: $nav-link-color;
+    }*/
+
+    > li + li {
+        margin-left: 25px;
+    }
+
+    #logo {
+        width: 260px;
+    } 
+}
+
+#breadcrumb {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 40px;
+    margin-left: 5px;
+    font-size: 14px;
+    direction: rtl;
+    text-align: left;
+    float: right;
+}
+
+/*.navbar-right {
+    width: 450px;
+}
+*/
+
+.navbar-default .navbar-nav > li > a {
+    padding-right: 10px;
+    padding-left: 20px;
+    color: #00A1B1;
+}
+
+.navbar-default .navbar-nav>li>a:focus, .navbar-default .navbar-nav>li>a:hover {
+    background-color: transparent;
+    opacity: 0.85;
+    color: #00A1B1;
+}
+
+.navbar-default .navbar-nav > .open > a, .navbar-default .navbar-nav > .open > a:hover, .navbar-default .navbar-nav > .open > a:focus {
+    color: #00A1B1;
+}
+
+@media (max-width: 990px) {
+    #breadcrumb {
+        display: none;
+    }
+
+}
+
+@media (max-width: 1200px) {
+    #breadcrumb {
+        max-width: 250px;
+    }
+}

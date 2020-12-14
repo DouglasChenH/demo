@@ -1,0 +1,18 @@
+/*@import '~bootstrap/dist/css/bootstrap.css';*/
+@import "variables";
+
+
+@import "vendor/antd";
+@import "theme";
+
+/* components */
+@import "general";
+@import "little_bits";
+@import "components/application_container";
+@import "components/loading_spinner";
+@import "components/navigation_bar";
+/*@import "components/shared_frame";*/
+/*@import "components/sidebar";*/
+@import "components/footer";
+@import "components/tabs";
+@import "components/user_frame";

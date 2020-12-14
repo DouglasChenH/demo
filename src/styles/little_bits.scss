@@ -1,0 +1,49 @@
+.color-accuenergy-blue {
+    color: $accuenergy-blue;
+}
+
+.flex-justify-content-at-end {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.flex-justify-content-space-between {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.height-300 {
+    height: 300px;
+}
+
+.margin-bottom-25 {
+    margin-bottom: 25px;
+}
+
+.padding-zero {
+    padding: 0;
+}
+
+.btn-default.btn-outlined {
+    border-color: $accuenergy-blue;
+    color: $accuenergy-blue;
+
+    &:hover, &:focus {
+        background: $accuenergy-orange;
+        border-color: $accuenergy-orange;
+        color: white;
+    }
+}
+
+.children-are-spaced > * + * {
+    margin-left: 2vw;
+}
+
+a {
+    cursor: pointer;
+}
+
+.text-warning {
+    color: $brand-danger;
+}

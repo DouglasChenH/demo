@@ -1,0 +1,212 @@
+hr {
+    border-color: #b4b7b9;
+}
+
+.react-icons {
+    font-size: 18px;
+    vertical-align: sub;
+    margin-right: 2px;
+    margin-left: 2px;
+}
+.react-icons-reg {
+    vertical-align: middle;
+}
+
+// If you have a button with an <Icon> in it, this rule:
+// - vertically centres the <Icon> and text
+// - guarantees spacing between the <Icon> and text
+.btn-with-icon {
+    /*align-items: center;
+    display: inline-flex;
+    justify-content: center;*/
+
+    > * + * {
+        margin-left: .5em;
+    }
+}
+
+
+// When you have a row of buttons just above a Bootstrap table, this rule on button container:
+// - the buttons are right-aligned
+// - the buttons are spaced 12px apart
+// - there is consistent spacing around the button row
+$button-margin: 12px;  // total space between buttons
+@mixin button-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 (-1 * $button-margin / 2);  // that'll be "0 -6px"
+
+    > * {
+        margin: $button-margin / 2;
+    }
+
+    @media(max-width: 989px) {
+        > * {
+            flex-grow: 1;
+        }
+    }
+
+    @media(min-width: 990px) {
+        justify-content: flex-end;
+    }
+}
+.button-row-above-table {
+    @include button-row;
+    margin-bottom: $button-margin;
+}
+.button-row-w-top-and-bottom-margin {
+    @include button-row;
+    margin-bottom: $button-margin;
+    margin-top: $button-margin;
+}
+.button-row-left-w-bottom-margin {
+    @include button-row;
+    margin-bottom: $button-margin;
+
+    @media(min-width: 990px) {
+        justify-content: flex-start;
+    }
+}
+.button-row-right-w-bottom-margin {
+    @include button-row;
+    margin-bottom: $button-margin;
+
+    @media(min-width: 990px) {
+        justify-content: flex-end;
+    }
+}
+.button-row-w-top-and-bottom-and-right-margin {
+    @include button-row;
+    margin-bottom: $button-margin;
+    margin-top: $button-margin;
+    margin-right: $button-margin;
+}
+.button-row { @include button-row; }
+
+.button-row-space-between {
+    @include button-row;
+
+    @media(min-width: 990px) {
+        justify-content: space-between;
+    }
+}
+
+.button-row-always-grow {
+    @include button-row;
+
+    @media(min-width: 990px) {
+        > * {
+            flex-grow: 1;
+        }
+    }
+}
+
+.form-grid {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+@mixin max-1920-centred {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 1920px;
+}
+
+@mixin max-1000-centred {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 1000px;
+}
+
+@mixin max-height-list($max-height) {
+    margin-bottom: 0;
+    margin-top: 5px;
+    padding-left: 0;
+    max-height: 150px; // in case $max-height is not working
+    max-height: $max-height;
+    overflow-y: auto;
+
+    li {
+        list-style: none;
+    }
+
+    li:first-of-type {
+        margin-top: -5px;
+    }
+}
+
+@mixin highlighted-row {
+    background-color: darkgrey;
+    color: #000;
+}
+
+// The rules below reduce the paddings of the components
+// in mobile view so that the content do not look squished.
+@media (max-width: $screen-mobile-m-max) {
+    .well {
+        background-color: $main-container-color;
+        border: none;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+        padding-top: 0;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .page-header {
+        h1 {
+            font-size: 30px;
+        }
+    }
+}
+
+.comment-above-table {
+    margin: 20px 0px;
+}
+
+
+// When you have a Bootstrap "row" and you want all its contents to be the same height as the row.
+.max-height-row {
+    *[class*="col-"] {
+        height: 100%;
+
+        > * {
+            height: 100%;
+        }
+    }
+
+    .well {
+        margin-bottom: 0;
+    }
+}
+
+.float-right {
+    float: right;
+}
+
+.modal-open {
+    overflow-y: auto;
+    padding-right: 0px !important;
+}
+
+.delete-button-with-modal {
+    display: inline-block;  
+}
+/**
+* overflow ellipsis
+* @param {Number} row number
+*/
+@mixin ellipsis($rowCount: 1) {
+  @if $rowCount <=1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  } @else {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: $rowCount;
+    -webkit-box-orient: vertical;
+  }
+}

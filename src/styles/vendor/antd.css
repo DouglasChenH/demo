@@ -1,0 +1,16 @@
+.ant-progress-inner {
+    background-color: #eeeeee !important;
+}
+
+.ant-table-filter-dropdown-link {
+  cursor: pointer !important;
+}
+
+.ant-table-body:focus {
+    outline: none !important;
+}
+
+.ant-modal-wrap {
+	z-index: 1040;
+    margin-top: 100px;
+}

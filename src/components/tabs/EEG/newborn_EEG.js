@@ -10,7 +10,7 @@ export class NewbornEEG extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            values: Immutable.List(Immutable.Map()),
+            values: Immutable.Map(),
             formValues: Immutable.Map(),
             isLoading: true,
             _rev: undefined,
@@ -22,7 +22,7 @@ export class NewbornEEG extends React.Component {
         fetchDataMixin(id, path, title)
             .then(doc => {
                 this.setState({
-                    values: formatRawDocData(Immutable.fromJS(doc.data)),
+                    values: Immutable.fromJS(doc.data),
                     _rev: doc._rev,
                 });
             })
@@ -35,28 +35,28 @@ export class NewbornEEG extends React.Component {
         e.preventDefault();
         const { id, path, title } = this.props;
         let prepData = this.form.prepSubmit();
-        console.log(prepData)
-        // if (prepData) {
-        //     let doc = {
-        //         _id:`${path}:user_${id}`,
-        //         data: prepData,
-        //         type: 'dynamic',
-        //     }
-            
-        //     if (this.state._rev) {
-        //         doc._rev = this.state._rev;
-        //     }
 
-        //     submitDataMixin(doc, id, title)
-        //         .then(rev => {
-        //             this.setState({
-        //                 _rev: rev,
-        //             });
-        //         })
-        //         .catch(err => {
-        //             console.log(err);
-        //         })
-        // }
+        if (prepData) {
+            let doc = {
+                _id:`${path}:user_${id}`,
+                data: prepData,
+                type: 'nested',
+            }
+            
+            if (this.state._rev) {
+                doc._rev = this.state._rev;
+            }
+
+            submitDataMixin(doc, id, title)
+                .then(rev => {
+                    this.setState({
+                        _rev: rev,
+                    });
+                })
+                .catch(err => {
+                    console.log(err);
+                })
+        }
     };
 
     createEEGFields = () => {
@@ -375,7 +375,8 @@ export class NewbornEEG extends React.Component {
             >
                 <Nested1stForm
                     wrappedComponentRef={(form) => this.form = form}
-                    values={values}
+                    layer={0}
+                    values={values.get('general', Immutable.List())}
                     fields={this.createEEGFields()}
                     firstLayerFields={this.createResultFields()}
                     secondLayerFields={this.createFields()}
@@ -384,9 +385,9 @@ export class NewbornEEG extends React.Component {
                     onValuesChange={this.onValuesChange}
                     title="新生儿脑电图检查基本信息"
                 >   
-               
                     <Nested1stForm
                         // wrappedComponentRef={(form) => this.form = form}
+                        layer={1}
                         values={values}
                         fields={this.createResultFields()}
                         columns={3}
@@ -397,6 +398,7 @@ export class NewbornEEG extends React.Component {
                     >   
                         <Nested1stForm
                             // wrappedComponentRef={(form) => this.form = form}
+                            layer={2}
                             values={values}
                             fields={this.createFields()}
                             columns={3}

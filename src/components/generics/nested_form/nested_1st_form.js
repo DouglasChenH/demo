@@ -163,84 +163,47 @@ export class Nested1stForm extends React.Component {
                 return;
             }
 
-            prepData = formatFormValues(Immutable.fromJS(values), this.props.fields);
+            let childFormData = Immutable.List();
+            let generalPart;
+            let dynamicPart;
 
- 
-            const childFormData = this.state.formValues.map(layer => {
+            this.state.formValues.forEach(layer => {
+                generalPart = Immutable.Map();
+                dynamicPart = Immutable.List();
+
                 if (layer.has('general')) {
-                    return layer.set('general', formatFormValues(layer.get('general'), this.props.firstLayerFields));
+                    generalPart = formatFormValues(layer.get('general'), this.props.firstLayerFields);
                 }
                 if (layer.has('dynamic')) {
-                    return layer.get('dynamic').map(secondLayer => {
+                    let subDynamicPart = Immutable.Map();
+                    layer.get('dynamic').forEach(secondLayer => {
                         if (secondLayer.has('general')) {
-                            return secondLayer.set('general', formatFormValues(secondLayer.get('general'), this.props.secondLayerFields));
+                            subDynamicPart = subDynamicPart.set('general', formatFormValues(secondLayer.get('general'), this.props.secondLayerFields));
+                            dynamicPart = dynamicPart.push(subDynamicPart);
+                        }
+                        if (secondLayer.has('dynamic')) {
+                            // not used
                         }
                     });
                 }
+
+                childFormData = childFormData.push(Immutable.Map({
+                    general: generalPart,
+                    dynamic: dynamicPart
+                }));
             });
         
-            console.log(childFormData.toJS())
+            // console.log(this.state.formValues.toJS(), childFormData.toJS())
 
-            let formData = prepData.map((form, formLayerIndex) => {
-                form = Immutable.Map({
+            const baseFormData = formatFormValues(Immutable.fromJS(values), this.props.fields);
+            prepData = baseFormData.map((form, formLayerIndex) => {
+                return Immutable.Map({
                     general: form,
                     dynamic: childFormData.get(formLayerIndex)
                 })
             })
-            
-             console.log(formData.toJS())
-            // const firstKey = Object.keys(values)[0];
-            // let rowData;
-            // let fieldName;
-            // let fieldValue;
-            // let fieldType;
-
-            // // an array of record
-            // prepData = values[firstKey].map((value, index) => {
-            //     rowData = Immutable.Map();
-
-            //     this.props.fields.forEach(row =>
-            //         row.forEach(field => {
-            //             fieldName = field.get('name');
-            //             fieldType = field.get('type');
-            //             fieldValue = values[fieldName][index];
-
-            //             if (fieldType.includes('date') || fieldType.includes('time')) {
-            //                 if (moment.isMoment(fieldValue)) {
-            //                     fieldValue = fieldValue.format('YYYY-MM-DD HH:mm:ss');     
-            //                 }
-                            
-            //             }
-            //             // if (fieldType === 'datetime') {
-            //             //     fieldValue = fieldValue.format('YYYY-MM-DD HH:mm');     
-            //             // }
-            //             // else if (fieldType === 'date') {
-            //             //     fieldValue = fieldValue.format('YYYY-MM-DD');     
-            //             // }
-            //             // else if (fieldType === 'time') {
-            //             //     fieldValue = fieldValue.format('HH:mm:ss');     
-            //             // }
-            //             else if (fieldType === 'number') {
-            //                 if (fieldValue === null || fieldValue === undefined ) {
-            //                     fieldValue = null;
-            //                 }
-            //                 else {
-            //                     fieldValue = Number(fieldValue);     
-            //                 }
-            //             }
-            //             else {
-            //                 fieldValue = fieldValue || ""; 
-            //             }
-
-            //             rowData = rowData.set(fieldName, fieldValue);
-            //         })
-            //     );
-
-            //     return rowData.toJS();
-            // });
         })
 
-       
         return prepData;
     };
 

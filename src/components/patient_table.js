@@ -122,13 +122,16 @@ function isValueInMap(mapData, fieldName, filterValue, type) {
     return false;
 }
 
-function isValueInDoc(doc, fieldName, filterValue, type) {
+function isValueInDoc(doc, filterName, filterConfig) {
     const docData = doc.getIn(['doc', 'data']);
     const docType = doc.getIn(['doc', 'type']);
+    const fieldName = filterConfig.get('key');
+    const filterValue = filterConfig.get('value');
+    const type = filterConfig.get('type');
+    const subformKey = filterConfig.get('subformKey');
 
     if (docType === 'general') {
         return isValueInMap(docData, fieldName, filterValue, type);
-    
     }
     if (docType === 'dynamic') {
         return docData.some(map => isValueInMap(map, fieldName, filterValue, type));
@@ -137,7 +140,24 @@ function isValueInDoc(doc, fieldName, filterValue, type) {
         return isValueInMap(docData.get('general'), fieldName, filterValue, type) ||
         docData.get('dynamic').some(map => isValueInMap(map, fieldName, filterValue, type));
     }
-    
+    // "multi-dynamic": multiple dynamic forms
+    if (docType === 'multi-dynamic') {
+        return docData.get(subformKey, Immutable.List()).some(map => isValueInMap(map, fieldName, filterValue, type));
+    }
+    // "mixed-multi-dynamic"： mix of a general from and a multi-dynamic form
+    if (docType === 'mixed-multi-dynamic') {
+        return isValueInMap(docData.get('general'), fieldName, filterValue, type) ||
+        docData.getIn(['dynamic', subformKey]).some(map => isValueInMap(map, fieldName, filterValue, type));
+    }
+    // "nested": nested dynimic forms
+    if (docType === 'nested') {
+        return false;
+       // return docData.some(map => isValueInMap(map, fieldName, filterValue, type));
+    }
+    // "files": upload/manage files
+    if (docType === 'file') {
+        return false;
+    }
     return false;
 }
 
@@ -481,25 +501,52 @@ export class PatientTable extends React.Component {
 
     applyFiltersToMatchPatientIDs = () => {
         const { filters, allDocs } = this.state;
-        
+        let filteredForms = Immutable.List();
+
+        if (filters.size > 0) {
+            filters.forEach((filterConfigs, formName) => {
+                if (filterConfigs.first()) {
+                   filteredForms.push(filterConfigs.first().get('formPath')); 
+                }
+            });
+        }
+
         // filter out the matched form which includes this value
         const matchedPatientIDs = allDocs
             .filter(record => 
-                filters.some((filterDetails, formName) => 
-                    record.get('key').includes(formName) && 
-                    filterDetails.every((filterValue, fieldName) => 
-                        isValueInDoc(record, fieldName, filterValue.get('value'), filterValue.get('type'))
-                    )
+                // filter out records of these forms
+                filteredForms.some(form => record.get('key').startsWith(form))
+            )
+            .filter(record => 
+                // pass filters for every form specified
+                filters.every((filterConfigs, formName) => {
+                    const formPath = filterConfigs.first().get('formPath');
+
+                    // each filter in this form must be satisified
+                    const result = filterConfigs.every((filterConfig, filterName) => 
+                            isValueInDoc(record, filterName, filterConfig)
+                        )
+                    if (result) {
+                        console.log(formPath, record.toJS() )
+                    }
+                    return filterConfigs.every((filterConfig, filterName) => 
+                        isValueInDoc(record, filterName, filterConfig)
+                    );  
+                }
             ))
             .map(record => extractPatientIDfromDocKey(record.get('key')))
 
         return matchedPatientIDs;
     };
 
-    onFilterValuesChange = (formName, key, value, fieldType, formKey) => {
+    // subformKey is the sub form title
+    // key is the changed form field
+    onFilterValuesChange = (formName, formPath, key, value, fieldType, subformKey = undefined) => {
+        const filterName = (subformKey && subformKey !== key) ? `${subformKey} - ${key}` : key;
+
         if (fieldType === 'text' && !value) {
             this.setState(prevState => ({
-                filters: prevState.filters.deleteIn([formName, key])
+                filters: prevState.filters.deleteIn([formName, filterName])
             }));
             return;
         }
@@ -512,7 +559,7 @@ export class PatientTable extends React.Component {
                 // meaningless value
                 if (!isEverySingleValueValid) {
                     this.setState(prevState => ({
-                        filters: prevState.filters.deleteIn([formName, key])
+                        filters: prevState.filters.deleteIn([formName, filterName])
                     }));
                     return;
                 }
@@ -523,7 +570,7 @@ export class PatientTable extends React.Component {
             if (fieldType === 'radio') {
                 if (value.every(singleValue => singleValue === '')) {
                     this.setState(prevState => ({
-                        filters: prevState.filters.deleteIn([formName, key])
+                        filters: prevState.filters.deleteIn([formName, filterName])
                     }));
                     return;
                 }
@@ -532,42 +579,60 @@ export class PatientTable extends React.Component {
 
         if (isValueValid(value)) {
             this.setState(prevState => ({
-                filters: prevState.filters.setIn([formName, key], Immutable.Map({
+                filters: prevState.filters.setIn([formName, filterName], Immutable.Map({
+                    key: key,
                     value: value,
                     type: fieldType,
+                    formPath: formPath,
+                    subformKey: subformKey,
                 }))
             }));
         }
     };
 
-    handleFilterTagClose = (formName, fieldName) => {
+    handleFilterTagClose = (formName, filterName) => {
         this.setState(prevState => ({
-            filters: prevState.filters.deleteIn([formName, fieldName])
+            filters: prevState.filters.deleteIn([formName, filterName])
         }));
     };
 
     generateFilterTags = () => {
-        let tags = [];
+        const filtersObj = this.state.filters.toJS();
+        let filterValues;
+        let filterValue;
 
-        this.state.filters.forEach((formFilters,formName) =>
-            this.state.filters.get(formName).forEach((fieldValue, fieldName) => {
-                if (fieldValue) {
-                    tags.push(
-                        <Tag
-                            closable
-                            key={fieldName}
-                            onClose={() => this.handleFilterTagClose(formName, fieldName)}
-                        >
-                            {`${fieldName}: ${parseValueToString(fieldValue.get('value'), fieldValue.get('type'), fieldName)}`}
-                        </Tag>
-                    )
-                }
-            })   
-        )
+        const children = Object.keys(filtersObj).map(formName => {
+            filterValues = filtersObj[formName];
 
+            return (
+                <div key={formName}>
+                    {`${formName} : `}
+                    {Object.keys(filterValues).length === 0 
+                        ? '---'
+                        : Object.keys(filterValues).map(filterName => {
+                        filterValue = filterValues[filterName];
+
+                        if (filterValue) {
+                            return (
+                                <Tag
+                                    closable
+                                    key={filterName}
+                                    onClose={() => this.handleFilterTagClose(formName, filterName)}
+                                >
+                                    {`${filterName}: ${parseValueToString(filterValue.value, filterValue.type, filterValue.key)}`}
+                                </Tag>
+                            )
+                        }
+                        else {
+                            return null;
+                        }
+                    })}
+                </div>
+            );
+        })
         return (
             <div style={{ marginBottom: '10px' }}>
-                {tags}
+                {children}
             </div>
         );
     };

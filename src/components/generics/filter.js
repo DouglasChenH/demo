@@ -13,7 +13,7 @@ function dynamicallyGeneratePanels(panelObject, onFilterValuesChange) {
         }
         
         FormComponent = React.createElement(panelObject[key].component, {
-            onValuesChange: (...args) => onFilterValuesChange(key, ...args),
+            onValuesChange: (...args) => onFilterValuesChange(panelObject[key].name, key, ...args),
             path: key,
             title: panelObject[key].name 
         });

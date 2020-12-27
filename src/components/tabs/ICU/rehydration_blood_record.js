@@ -112,7 +112,7 @@ export class RehydrationBloodRecord extends React.Component {
                         fields={this.createFields(key)}
                         columns={3}
                         isForFilters={!id}
-                        onValuesChange={onValuesChange}
+                        onValuesChange={(...args) => onValuesChange(...args, key)}
                     />
                 )}
             </SharedFrame>

@@ -496,7 +496,7 @@ export class PatientTable extends React.Component {
         return matchedPatientIDs;
     };
 
-    onFilterValuesChange = (key, value, fieldType, formName) => {
+    onFilterValuesChange = (formName, key, value, fieldType, formKey) => {
         if (fieldType === 'text' && !value) {
             this.setState(prevState => ({
                 filters: prevState.filters.deleteIn([formName, key])

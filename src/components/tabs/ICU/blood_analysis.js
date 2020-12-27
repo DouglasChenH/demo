@@ -176,7 +176,7 @@ export class BloodAnalysis extends React.Component {
                     fields={this.createFields("酸碱度pH")}
                     columns={3}
                     isForFilters={!id}
-                    onValuesChange={onValuesChange}
+                    onValuesChange={(...args) => onValuesChange(...args, "酸碱度pH")}
                 />
                 <DynamicForm
                     wrappedComponentRef={(form) => this.formRef['二氧化碳分压PCO2（Kpa）'] = form}
@@ -185,7 +185,7 @@ export class BloodAnalysis extends React.Component {
                     fields={this.createSpecialFields("二氧化碳分压PCO2（Kpa）", "二氧化碳分压PCO2 （mmHg）")}
                     columns={4}
                     isForFilters={!id}
-                    onValuesChange={onValuesChange}
+                    onValuesChange={(...args) => onValuesChange(...args, '二氧化碳分压PCO2（Kpa）')}
                 />
                 <DynamicForm
                     wrappedComponentRef={(form) => this.formRef['氧分压PO2 （Kpa）'] = form}
@@ -194,7 +194,7 @@ export class BloodAnalysis extends React.Component {
                     fields={this.createSpecialFields("氧分压PO2 （Kpa）", "氧分压PO2 （mmHg）")}
                     columns={4}
                     isForFilters={!id}
-                    onValuesChange={onValuesChange}
+                    onValuesChange={(...args) => onValuesChange(...args, '氧分压PO2 （Kpa）')}
                 />
                 {keys.map((key, index) => 
                     <DynamicForm
@@ -205,7 +205,7 @@ export class BloodAnalysis extends React.Component {
                         fields={this.createFields(key)}
                         columns={3}
                         isForFilters={!id}
-                        onValuesChange={onValuesChange}
+                        onValuesChange={(...args) => onValuesChange(...args, key)}
                     />
                 )}
                 <DynamicForm
@@ -215,7 +215,7 @@ export class BloodAnalysis extends React.Component {
                     fields={this.createSpecialFields("静脉血氧分压PvO2（Kpa）", "静脉血氧分压PvO2 （mmHg）")}
                     columns={4}
                     isForFilters={!id}
-                    onValuesChange={onValuesChange}
+                    onValuesChange={(...args) => onValuesChange(...args, '静脉血氧分压PvO2（Kpa）')}
                 />
                 <hr />
                 <GeneralForm
@@ -224,7 +224,7 @@ export class BloodAnalysis extends React.Component {
                     fields={this.createGeneralFields()}
                     columns={2}
                     isForFilters={!id}
-                    onValuesChange={onValuesChange}
+                    onValuesChange={(...args) => onValuesChange(...args, 'general')}
                 />
             </SharedFrame>
         );

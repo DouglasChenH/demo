@@ -10,7 +10,7 @@ export class NewbornEEG extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            values: Immutable.Map(),
+            values: Immutable.List([Immutable.Map()]),
             formValues: Immutable.Map(),
             isLoading: true,
             _rev: undefined,
@@ -19,16 +19,16 @@ export class NewbornEEG extends React.Component {
 
     componentDidMount() {
         const { id, path, title } = this.props;
-        fetchDataMixin(id, path, title)
-            .then(doc => {
-                this.setState({
-                    values: Immutable.fromJS(doc.data),
-                    _rev: doc._rev,
-                });
-            })
-            .catch(err => {
-                console.log(err);
-            })
+        // fetchDataMixin(id, path, title)
+        //     .then(doc => {
+        //         this.setState({
+        //             values: Immutable.fromJS(doc.data),
+        //             _rev: doc._rev,
+        //         });
+        //     })
+        //     .catch(err => {
+        //         console.log(err);
+        //     })
     }
 
     handleSubmit = e => {
@@ -376,7 +376,7 @@ export class NewbornEEG extends React.Component {
                 <Nested1stForm
                     wrappedComponentRef={(form) => this.form = form}
                     layer={0}
-                    values={values.get('general', Immutable.List())}
+                    values={values}
                     fields={this.createEEGFields()}
                     firstLayerFields={this.createResultFields()}
                     secondLayerFields={this.createFields()}
@@ -388,7 +388,7 @@ export class NewbornEEG extends React.Component {
                     <Nested1stForm
                         // wrappedComponentRef={(form) => this.form = form}
                         layer={1}
-                        values={values}
+                        // values={values}
                         fields={this.createResultFields()}
                         columns={3}
                         isForFilters={!id}
@@ -399,7 +399,7 @@ export class NewbornEEG extends React.Component {
                         <Nested1stForm
                             // wrappedComponentRef={(form) => this.form = form}
                             layer={2}
-                            values={values}
+                            // values={values}
                             fields={this.createFields()}
                             columns={3}
                             isForFilters={!id}

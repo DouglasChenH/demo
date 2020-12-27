@@ -132,7 +132,7 @@ export class TCDBeforeOperation extends React.Component {
                         fields={this.createFields(key)}
                         columns={2}
                         isForFilters={!id}
-                        onValuesChange={onValuesChange}
+                        onValuesChange={(...args) => onValuesChange(...args, key)}
                     />
                 )}
                 <hr />

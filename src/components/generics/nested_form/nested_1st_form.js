@@ -86,11 +86,9 @@ export class Nested1stForm extends React.Component {
     };
 
     componentDidMount() {
-        if (this.props.values &&
-            this.props.values.get('general') &&
-            this.props.values.get('general').size > 0) {
+        if (this.props.values) {
             this.setState({
-                records: this.props.values.get('general')
+                records: this.props.values
             });
         }
     }
@@ -244,7 +242,6 @@ export class Nested1stForm extends React.Component {
     };
 
     onValuesChange = (changedValues, allValues, index) => {
-        
         // first layer
         if (this.props.parentIndexes.size === 0) {
             console.log(index.toJS(), allValues);
@@ -364,6 +361,7 @@ export class Nested1stForm extends React.Component {
 
         return content;
     }
+
     render() {
         const { form, columns = 3, } = this.props;
         const { getFieldDecorator } = form;

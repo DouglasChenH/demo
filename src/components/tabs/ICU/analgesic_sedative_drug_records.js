@@ -139,7 +139,7 @@ export class AnalgesicSedativeDrugsRecord extends React.Component {
                         fields={this.createFields(key)}
                         columns={3}
                         isForFilters={!id}
-                        onValuesChange={onValuesChange}
+                        onValuesChange={(...args) => onValuesChange(...args, key)}
                     />
                 )}
                 <DynamicForm
@@ -149,7 +149,7 @@ export class AnalgesicSedativeDrugsRecord extends React.Component {
                     fields={this.createSpecialFields()}
                     columns={4}
                     isForFilters={!id}
-                    onValuesChange={onValuesChange}
+                    onValuesChange={(...args) => onValuesChange(...args, '其他')}
                 />
             </SharedFrame>
         );

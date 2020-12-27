@@ -13,7 +13,7 @@ function dynamicallyGeneratePanels(panelObject, onFilterValuesChange) {
         }
         
         FormComponent = React.createElement(panelObject[key].component, {
-            onValuesChange: (fieldName, fieldValue, fieldType) => onFilterValuesChange(fieldName, fieldValue, fieldType, key),
+            onValuesChange: (...args) => onFilterValuesChange(key, ...args),
             path: key,
             title: panelObject[key].name 
         });
@@ -32,9 +32,9 @@ export function Filter({onFilterValuesChange}) {
     const formKeys = Object.keys(FORM_NAME_MAP);
     let filterPanels = [];
 
-    // skip ICU/EEG in filters for now
+    // skip EEG in filters for now
     formKeys.forEach(key => 
-        key !== 'EEG' && key !== 'ICU' && filterPanels.push(
+        key !== 'EEG' && filterPanels.push(
             <Panel header={FORM_GROUP_MAP[key]} key={key}>
                 <Collapse destroyInactivePanel expandIconPosition={"right"}>
                     {dynamicallyGeneratePanels(FORM_NAME_MAP[key], onFilterValuesChange)}

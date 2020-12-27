@@ -336,15 +336,25 @@ export class PatientTable extends React.Component {
     };
 
     deletePatient = async (id, name) => {
+        const patientDocs = this.state.allDocs
+            .filter(doc => doc.get('id', '').endsWith(`:user_${id}`))
+            .map(doc => Immutable.Map({
+                _id: doc.get('id'),
+                _rev: doc.getIn(['value', 'rev']),
+                _deleted: true
+            }))
+            .toJS();
+        
         try {
-            var doc = await db.get(`basic_info:user_${id}`);
-            var response = await db.remove(doc);
+            var result = await db.bulkDocs(patientDocs);
 
             const index = this.state.patients.findIndex(patient => patient.get('病案号') === id);
-            showSuccess(`病案（${name}）已删除`);
+            
             this.setState((prevState) => ({
-                patients: prevState.patients.delete(index)
+                patients: prevState.patients.delete(index),
+                allDocs: prevState.allDocs.filter(doc => !doc.get('id', '').endsWith(`:user_${id}`))
             }));
+            showSuccess(`病案（${name}）已删除`);
         } catch (err) {
             showError(`病案（${name}）删除失败: ${err.message}`);
             console.log(err);

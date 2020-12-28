@@ -53,8 +53,8 @@ export class PatientFrame extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            selectedKeys: ["basic_info"],
-            openKeys: ["main"],
+            selectedKeys: ["patient_info"],
+            openKeys: ["patient_info"],
             // configs: Immutable.Map(),
             // isLoading: true,
         };

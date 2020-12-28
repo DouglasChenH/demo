@@ -319,24 +319,14 @@ export class PatientTable extends React.Component {
 
     loadData = async() => {
         try {
-            //  var result = await db.find({
-            //     selector: {
-            //         _id: {
-            //             $regex: 'basic_info$'
-            //         }
-            //     }
-            // });
             var result = await db.allDocs({
                 include_docs: true,
-                // attachments: true,
-                // startkey: 'basic_info',
-                // endkey: 'basic_info\ufff0'
             });
 
             console.log(result)
             // let userData;
             const patientsData = result.rows
-                .filter(row => row.key.includes('basic_info'))
+                .filter(row => row.key.includes('patient_info'))
                 .map(row => row.doc.data);
 
             console.log(patientsData, result)
@@ -345,7 +335,6 @@ export class PatientTable extends React.Component {
                 patients: Immutable.fromJS(patientsData),
                 isLoading: false,
             });
-            console.log(result)
         } catch (err) {
             this.setState({
                 isLoading: false,
@@ -647,21 +636,21 @@ export class PatientTable extends React.Component {
                 ...this.getColumnSearchProps('病案号', '病案号'),
                 render: (text, record) => (
                   <Link
-                      to={`/patients/${record['病案号']}/basic_info`}
+                      to={`/patients/${record['病案号']}/patient_info`}
                   >
                       {text}
                   </Link>
               )
             },
             {
-              title: '姓名',
-              dataIndex: '姓名',
-              key: '姓名',
+              title: '患者姓名',
+              dataIndex: '患者姓名',
+              key: '患者姓名',
               width: '30%',
-              ...this.getColumnSearchProps('姓名', '姓名'),
+              ...this.getColumnSearchProps('患者姓名', '患者姓名'),
               render: (text, record) => (
                   <Link
-                      to={`/patients/${record['病案号']}/basic_info`}
+                      to={`/patients/${record['病案号']}/patient_info`}
                   >
                       {text}
                   </Link>

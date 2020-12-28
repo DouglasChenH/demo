@@ -121,6 +121,32 @@ export const FORM_GROUP_MAP = {
 }
 
 export const FORM_NAME_MAP = {
+    patient_info: {
+        patient_info: {
+            name: "患者基本信息",
+            component: PatientBasicInfo,
+        },
+        past_history: {
+            name: "既往史",
+            component: PastHistory,
+        }, 
+        hospital_stay_info: {
+            name: "医内停留信息",
+            component: HospitalStayInfo,
+        },
+        surgery_related_info: {
+            name: "手术相关信息 ",
+            component: SurgeryRelatedInfo,
+        },
+        specimen_library_storage: {
+            name: "标本库入库 ",
+            component: SpecimenLibraryStorage,
+        },
+        ultrasound_Xray: {
+            name: "围术期超声和X光检查 ",
+            component: UltrasoundXray,
+        } 
+    },
     main: {
         basic_info: {
             name: "基本信息",
@@ -170,32 +196,6 @@ export const FORM_NAME_MAP = {
             name: "医护/病案",
             component: MedicalPersonnel,
         },
-    },
-    patient_info: {
-        patient_info: {
-            name: "患者基本信息",
-            component: PatientBasicInfo,
-        },
-        past_history: {
-            name: "既往史",
-            component: PastHistory,
-        }, 
-        hospital_stay_info: {
-            name: "医内停留信息",
-            component: HospitalStayInfo,
-        },
-        surgery_related_info: {
-            name: "手术相关信息 ",
-            component: SurgeryRelatedInfo,
-        },
-        specimen_library_storage: {
-            name: "标本库入库 ",
-            component: SpecimenLibraryStorage,
-        },
-        ultrasound_Xray: {
-            name: "围术期超声和X光检查 ",
-            component: UltrasoundXray,
-        } 
     },
     EEG: {
         newborn_EEG: {

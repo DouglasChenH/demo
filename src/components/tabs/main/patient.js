@@ -17,6 +17,11 @@ export class Patient extends React.Component {
 
     componentDidMount() {
         const { id, path, title } = this.props;
+
+        if (!id) {
+            return;
+        }
+        
         fetchDataMixin(id, path, title)
             .then(doc => {
                 this.setState({

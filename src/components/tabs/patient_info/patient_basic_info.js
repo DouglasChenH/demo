@@ -18,6 +18,10 @@ export class PatientBasicInfo extends React.Component {
     componentDidMount() {
         const { id, path, title } = this.props;
         
+        if (!id) {
+            return;
+        }
+        
         fetchDataMixin(id, path, title)
             .then(doc => {
                 let values = formatRawDocData(Immutable.fromJS(doc.data));

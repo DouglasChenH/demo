@@ -228,7 +228,7 @@ class CreatePatientBtn extends React.Component {
     handleUserId = async(id) => {
         const { form } = this.formRef.props;
         try {
-            const doc = await db.get(`basic_info:user_${id}`);
+            const doc = await db.get(`patient_info:user_${id}`);
             let that = this;
 
             confirm({
@@ -237,7 +237,7 @@ class CreatePatientBtn extends React.Component {
                 onOk() {
                     form.resetFields();
                     that.setState({ visible: false, confirmLoading: false });
-                    that.props.history.push(`/patients/${id}`);
+                    that.props.history.push(`/patients/${id}/patient_info`);
                 },
                 okText: "修改",
                 cancekText:"取消",
@@ -253,7 +253,7 @@ class CreatePatientBtn extends React.Component {
                 showSuccess(`病案号（${id}）创建成功`);
                 form.resetFields();
                 this.setState({ visible: false, confirmLoading: false });
-                this.props.history.push(`/patients/${id}`);
+                this.props.history.push(`/patients/${id}/patient_info`);
             }
         }
     };
@@ -296,7 +296,6 @@ class CreatePatientBtn extends React.Component {
     }
 }
 
-
 export class PatientTable extends React.Component {
   constructor(props) {
         super(props);
@@ -305,6 +304,7 @@ export class PatientTable extends React.Component {
             filters: Immutable.Map(),
             allDocs: Immutable.List(),
             filteredDocs: Immutable.List(),
+            filteredForms: Immutable.List(),
             searchText: '',
             searchedColumn: '',
             patients: Immutable.List(),
@@ -315,6 +315,32 @@ export class PatientTable extends React.Component {
 
     componentDidMount() {
         this.loadData();
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        const { filters } = this.state;
+
+        if (!prevState.filters.equals(filters)) {
+            
+            let filteredForms = Immutable.List();
+            let formPath;
+
+            if (filters.size > 0) {
+                filters.forEach((filterConfigs, formName) => {
+                    if (filterConfigs.first()) {
+                        formPath = filterConfigs.first().get('formPath');
+                    
+                        if (!filteredForms.has(formPath)) {
+                            filteredForms = filteredForms.push(formPath); 
+                        }
+                    }
+                });
+            }
+
+            this.setState({
+                filteredForms
+            });
+        }
     }
 
     loadData = async() => {
@@ -438,6 +464,7 @@ export class PatientTable extends React.Component {
     };
 
     exportToExcel = (id) => {
+        const { filteredForms } = this.state;
         let docKey;
         let patientID;
 
@@ -452,14 +479,15 @@ export class PatientTable extends React.Component {
     };
 
     exportAllToExcel = () => {
-        const { isFilterOn, filters, allDocs } = this.state;
+        const { isFilterOn, filters, filteredForms, allDocs } = this.state;
         let excelData;
 
         if (!isFilterOn || filters.size === 0) {
             excelData = allDocs;
         }
         else {
-            const matchedPatientIDs = this.applyFiltersToMatchPatientIDs();
+            const matchedDocs = this.applyFiltersToExtractDocs();
+            const matchedPatientIDs = matchedDocs.map(record => extractPatientIDfromDocKey(record.get('key')));
             let docKey;
             let patientID;
 
@@ -481,24 +509,76 @@ export class PatientTable extends React.Component {
             patientsData = patients;
         }
         else {
-            const matchedPatientIDs = this.applyFiltersToMatchPatientIDs();
-            patientsData = patients.filter(patient => matchedPatientIDs.includes(patient.get('病案号')));
+            const filteredPatients = this.applyFiltersToExtractDocs();
+            const filteredPatientIDs = filteredPatients.keySeq();
+            console.log(filteredPatientIDs.toJS())
+            patientsData = patients.filter(patient => filteredPatientIDs.includes(patient.get('病案号')));
         }
 
         return patientsData.map((data, index) => data.set('key', index)).toJS();
     };
 
-    applyFiltersToMatchPatientIDs = () => {
-        const { filters, allDocs } = this.state;
-        let filteredForms = Immutable.List();
+    applyFiltersToExtractDocs = () => {
+        const { filters, filteredForms, allDocs } = this.state;
+        console.log(filteredForms.toJS())
+        // filter out the matched form which includes this value
+        const matchedDocs = allDocs
+            .filter(record => 
+                // filter out records of these forms
+                filteredForms.some(form => record.get('key').startsWith(form))
+            )
+        const matchedRecords = matchedDocs
+            .filter(record => 
+                // pass filters for every form specified
+                filters.every((filterConfigs, formName) => {
+                    if (filterConfigs.first()) {
+                        const formPath = filterConfigs.first().get('formPath');
 
-        if (filters.size > 0) {
-            filters.forEach((filterConfigs, formName) => {
-                if (filterConfigs.first()) {
-                   filteredForms.push(filterConfigs.first().get('formPath')); 
+                        // record matches the filter
+                        if (record.get('key').startsWith(formPath)) {
+                            return filterConfigs.every((filterConfig, filterName) => 
+                                isValueInDoc(record, filterName, filterConfig)
+                            );  
+                        }
+                        // unrelevant records
+                        return true;  
+                    }
+                    // no filter
+                    return true;
                 }
-            });
-        }
+            ))
+        
+        let matchedRecordsToPatients = Immutable.Map();
+        let patientID;
+
+        matchedRecords.forEach(record => {
+            patientID = extractPatientIDfromDocKey(record.get('key'));
+
+            if (!matchedRecordsToPatients.has(patientID)) {
+                matchedRecordsToPatients = matchedRecordsToPatients
+                    .set(patientID, Immutable.List([record]));
+            }
+            else {
+                matchedRecordsToPatients = matchedRecordsToPatients
+                    .update(patientID, value => value.push(record));
+            }
+        })
+
+        const filteredFormsSize = filteredForms.size;
+        let filteredPatients = Immutable.Map();
+        
+        matchedRecordsToPatients.forEach((records, patientID) => {
+            if (records.size === filteredFormsSize) {
+                filteredPatients = filteredPatients.set(patientID, records);
+            }
+        })
+
+        console.log(filteredPatients.toJS(), matchedRecords.toJS())
+        return filteredPatients;
+    };
+
+    applyFiltersToMatchPatientIDs = () => {
+        const { filters, filteredForms, allDocs } = this.state;
 
         // filter out the matched form which includes this value
         const matchedPatientIDs = allDocs
@@ -511,13 +591,6 @@ export class PatientTable extends React.Component {
                 filters.every((filterConfigs, formName) => {
                     const formPath = filterConfigs.first().get('formPath');
 
-                    // each filter in this form must be satisified
-                    const result = filterConfigs.every((filterConfig, filterName) => 
-                            isValueInDoc(record, filterName, filterConfig)
-                        )
-                    if (result) {
-                        console.log(formPath, record.toJS() )
-                    }
                     return filterConfigs.every((filterConfig, filterName) => 
                         isValueInDoc(record, filterName, filterConfig)
                     );  
@@ -525,6 +598,7 @@ export class PatientTable extends React.Component {
             ))
             .map(record => extractPatientIDfromDocKey(record.get('key')))
 
+        console.log(matchedPatientIDs.toJS())
         return matchedPatientIDs;
     };
 
@@ -542,7 +616,6 @@ export class PatientTable extends React.Component {
         if (Array.isArray(value)) {
             value = Immutable.fromJS(value);
 
-            
             if (fieldType === 'number' || fieldType.includes('date') || fieldType.includes('time')) {
                 const isEverySingleValueValid = value.every(singleValue => isFieldValueValid(singleValue));
                 // meaningless value
@@ -580,9 +653,17 @@ export class PatientTable extends React.Component {
     };
 
     handleFilterTagClose = (formName, filterName) => {
-        this.setState(prevState => ({
-            filters: prevState.filters.deleteIn([formName, filterName])
-        }));
+        let { filters } = this.state;
+
+        filters = filters.deleteIn([formName, filterName]);
+        
+        if (filters.get(formName, Immutable.List()).size === 0) {
+            filters = filters.delete(formName);
+        }
+
+        this.setState({
+            filters: filters
+        });
     };
 
     generateFilterTags = () => {
@@ -691,10 +772,14 @@ export class PatientTable extends React.Component {
                             modalText="该病案所有数据将被删除"
                             handleConfirmClick={() => this.deletePatient(record['病案号'], record['姓名'])}
                         />
-                        <Divider type="vertical" />
-                        <a onClick={e => this.exportToExcel(record['病案号'])}>
-                            <FaCloudDownloadAlt style={{ fontSize: '32px', verticalAlign: 'middle' }}/>
-                        </a>
+                        {this.state.filteredForms.size > 0 &&
+                            <span>
+                                <Divider type="vertical" />
+                                <a onClick={e => this.exportToExcel(record['病案号'])}>
+                                    <FaCloudDownloadAlt style={{ fontSize: '32px', verticalAlign: 'middle' }}/>
+                                </a>
+                            </span>
+                        }
                     </span>
                 )
             }
@@ -738,13 +823,15 @@ export class PatientTable extends React.Component {
                                 <CreatePatientBtn
                                     history={this.props.history}
                                 />
-                                <Button
-                                    type="primary"
-                                    icon="download"
-                                    onClick={e => this.exportAllToExcel()}
-                                >
-                                    下载EXCEL
-                                </Button>
+                                {this.state.filteredForms.size > 0 &&
+                                    <Button
+                                        type="primary"
+                                        icon="download"
+                                        onClick={e => this.exportAllToExcel()}
+                                    >
+                                        下载EXCEL
+                                    </Button>
+                                }
                             </div>
                             <Table
                                 columns={this.initColumns()}

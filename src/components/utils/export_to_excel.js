@@ -33,7 +33,111 @@ function s2ab(s) {
 }
 
 export function exportToExcel(rawData) {
-    // console.log(rawData)
+    console.log(rawData.toJS())
+    let excelData = Immutable.Map();
+
+    //  data = {
+    //     'basic_info': data,
+    //     'single': [{
+    //         "name": "pikachu",
+    //         "category": "pokemon"
+    //     }, {
+    //         "name": "Arbok",
+    //         "category": "pokemon"
+    //     }, {
+    //         "name": "Eevee",
+    //         "category": "pokemon"
+    //     }]
+    // }
+
+    rawData.forEach((categorizedDocs, patientID) => {
+        let rowGeneralData = Immutable.OrderedMap({
+            '病案号': patientID
+        });
+
+        // key is the ICU time, value is the list of usage at this time
+        let ICUTimeAndUsage = Immutable.Map();
+        
+
+        categorizedDocs.forEach((docs, type) => {
+            if (type === 'general') {
+                docs.forEach(doc => rowGeneralData = rowGeneralData.merge(doc.get('data')))
+            }
+            if (type === 'multi-dynamic' || type === 'mixed-multi-dynamic') {
+                docs.forEach(doc => {
+                    let ICUData;
+                    let ICUTime;
+
+                    if (type === 'multi-dynamic') {
+                        ICUData = doc.get('data', Immutable.Map());
+                    }
+                    else {
+                        ICUData = doc.getIn(['data', 'dynamic'], Immutable.Map());
+                    }
+
+                    ICUData.forEach((data, variable) => {
+                        data.forEach(variableData => {
+                            ICUTime = variableData.get('ICU时间点');
+                            
+                            if (ICUTime) {
+                                ICUTimeAndUsage = ICUTimeAndUsage.setIn([ICUTime, variable], variableData.get(variable));
+                            } 
+                        })
+                    })
+                })
+            }
+        })
+
+        // format excel data
+        let patientExcelData = Immutable.List();
+        
+        console.log(ICUTimeAndUsage.toJS())
+
+        ICUTimeAndUsage.forEach((ICUUsageData, ICUTime) => {
+            let patientRowData = Immutable.OrderedMap();
+            patientRowData = patientRowData
+                .set('ICU时间点', ICUTime)
+                .merge(rowGeneralData)
+                .merge(ICUUsageData);
+            patientExcelData = patientExcelData.push(patientRowData);
+        })
+
+        console.log(patientExcelData.toJS())
+
+        // add the patient data to the excel
+        let sheetData = excelData.get('general', Immutable.List());
+        
+        sheetData = sheetData.concat(patientExcelData);
+        excelData = excelData.set('general', sheetData);
+    })
+
+     // A workbook is the name given to an Excel file
+    const wb = XLSX.utils.book_new(); // make Workbook of Excel
+    let sheetWS;
+    let sheetName;
+
+    excelData.forEach((sheet, sheetKey) => {
+        sheetName = FORM_NAME_TRANSLATOR[sheetKey];
+        // replace "/" by '、' in the name
+        sheetName = sheetName && sheetName.replace(/\//gi, '、');
+        sheetWS = XLSX.utils.json_to_sheet(sheet.toJS());
+        XLSX.utils.book_append_sheet(wb, sheetWS, sheetName);
+    })
+
+    // var basicInfoWS = XLSX.utils.json_to_sheet(data.basic_info);
+    // var admissionWS = XLSX.utils.json_to_sheet(data.admission);
+
+
+    // // add Worksheet to Workbook
+    // // Workbook contains one or more worksheets
+    // XLSX.utils.book_append_sheet(wb, basicInfoWS, '基本信息') // sheetAName is name of Worksheet
+    // XLSX.utils.book_append_sheet(wb, admissionWS, '入院信息')
+
+    // export Excel file
+    XLSX.writeFile(wb, '病案列表.xlsx') // name of the file is 'book.xlsx'
+    return;
+
+    /*
     let defaultMap;
     let docKey;
     let docName;
@@ -132,6 +236,7 @@ export function exportToExcel(rawData) {
 
     // export Excel file
     XLSX.writeFile(wb, '病案列表.xlsx') // name of the file is 'book.xlsx'
+*/
 }
 
 export default exportToExcel;

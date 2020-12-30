@@ -14,6 +14,8 @@ export class BodyTemperatureRecord extends React.Component {
             isLoading: true,
             _rev: undefined,
         };
+
+        this.formRef = {};
     }
 
     componentDidMount() {
@@ -21,9 +23,12 @@ export class BodyTemperatureRecord extends React.Component {
         if (id) {
             fetchDataMixin(id, path, title)
                 .then(doc => {
+                    const dynamicValues = Immutable.fromJS(doc.data.dynamic)
+                        .map((value, key) => formatRawDocData(value));
+
                     this.setState({
                         genaralValues: formatRawDocData(Immutable.fromJS(doc.data.general)),
-                        dynamicValues: formatRawDocData(Immutable.fromJS(doc.data.dynamic)),
+                        dynamicValues: dynamicValues,
                         _rev: doc._rev,
                     });
                 })
@@ -37,8 +42,12 @@ export class BodyTemperatureRecord extends React.Component {
         e.preventDefault();
 
         const { id, path, title } = this.props;
-        const dynamicValues = this.dynamicForm.prepSubmit();
         const generalValues = this.generalForm.prepSubmit();
+        let dynamicValues = Immutable.OrderedMap();
+
+        Object.keys(this.formRef).forEach(form => 
+            dynamicValues = dynamicValues.set(form, this.formRef[form].prepSubmit())
+        );
 
         if (dynamicValues && generalValues) {
             let doc = {
@@ -47,7 +56,7 @@ export class BodyTemperatureRecord extends React.Component {
                     dynamic: dynamicValues,
                     general: generalValues,
                 },
-                type: 'mixed',
+                type: 'mixed-multi-dynamic',
             }
             
             if (this.state._rev) {
@@ -117,8 +126,9 @@ export class BodyTemperatureRecord extends React.Component {
                 isForFilters={!id}
             >
                 <DynamicForm
-                    wrappedComponentRef={(form) => this.dynamicForm = form}
-                    values={dynamicValues}
+                    wrappedComponentRef={(form) => this.formRef['体温（℃）'] = form}
+                    title={'体温（℃）'}
+                    values={dynamicValues.get('体温（℃）', Immutable.List())}
                     fields={this.createDynamicFields()}
                     columns={3}
                     isForFilters={!id}

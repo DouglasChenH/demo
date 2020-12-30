@@ -301,7 +301,18 @@ export class PatientTable extends React.Component {
         super(props);
  
         this.state = {
-            filters: Immutable.Map(),
+            filters: Immutable.fromJS({
+                '术后48小时连续血管活性药记录': {
+                    '多巴胺 （mcg/kg/min） - ICU时间点': {
+                        formPath: "vasoactive_drugs_record",
+                        key: "ICU时间点",
+                        subformKey: "多巴胺 （mcg/kg/min）",
+                        type: "number",
+                        value: [2, 2],
+                    }
+                }
+            }),
+            filteredPatientDocs: Immutable.Map(),
             allDocs: Immutable.List(),
             filteredDocs: Immutable.List(),
             filteredForms: Immutable.List(),
@@ -309,7 +320,7 @@ export class PatientTable extends React.Component {
             searchedColumn: '',
             patients: Immutable.List(),
             isLoading: true,
-            isFilterOn: false,
+            isFilterOn: true,
         };
     }
 
@@ -318,28 +329,14 @@ export class PatientTable extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { filters } = this.state;
+        const { isFilterOn, filters, allDocs } = this.state;
 
-        if (!prevState.filters.equals(filters)) {
-            
-            let filteredForms = Immutable.List();
-            let formPath;
-
-            if (filters.size > 0) {
-                filters.forEach((filterConfigs, formName) => {
-                    if (filterConfigs.first()) {
-                        formPath = filterConfigs.first().get('formPath');
-                    
-                        if (!filteredForms.has(formPath)) {
-                            filteredForms = filteredForms.push(formPath); 
-                        }
-                    }
-                });
+        if (isFilterOn) {
+            console.log(filters.toJS())
+            if (!prevState.filters.equals(filters) ||
+                !prevState.allDocs.equals(allDocs)) {
+                this.applyFiltersToExtractDocs();
             }
-
-            this.setState({
-                filteredForms
-            });
         }
     }
 
@@ -353,7 +350,7 @@ export class PatientTable extends React.Component {
             // let userData;
             const patientsData = result.rows
                 .filter(row => row.key.includes('patient_info'))
-                .map(row => row.doc.data);
+                .map(row => row.doc);
 
             console.log(patientsData, result)
             this.setState({
@@ -370,6 +367,108 @@ export class PatientTable extends React.Component {
         }
     };
 
+    applyFiltersToExtractDocs = () => {
+        const { filters, patients, allDocs } = this.state;
+
+        let filteredForms = Immutable.List();
+        let formPath;
+
+        if (filters.size > 0) {
+            filters.forEach((filterConfigs, formName) => {
+                if (filterConfigs.first()) {
+                    formPath = filterConfigs.first().get('formPath');
+                
+                    if (!filteredForms.has(formPath)) {
+                        filteredForms = filteredForms.push(formPath); 
+                    }
+                }
+            });
+        }
+
+        console.log(filteredForms.toJS())
+        // filter out the matched form which includes this value
+        const matchedDocs = allDocs
+            .filter(record => 
+                // filter out records of these forms
+                filteredForms.some(form => record.get('key').startsWith(form))
+            )
+        const matchedRecords = matchedDocs
+            .filter(record => 
+                // pass filters for every form specified
+                filters.every((filterConfigs, formName) => {
+                    if (filterConfigs.first()) {
+                        const formPath = filterConfigs.first().get('formPath');
+
+                        // record matches the filter
+                        if (record.get('key').startsWith(formPath)) {
+                            return filterConfigs.every((filterConfig, filterName) => 
+                                isValueInDoc(record, filterName, filterConfig)
+                            );  
+                        }
+                        // unrelevant records
+                        return true;  
+                    }
+                    // no filter
+                    return true;
+                }
+            ))
+        
+        let matchedRecordsToPatients = Immutable.Map();
+        let patientID;
+        let doc;
+
+        matchedRecords.forEach(record => {
+            patientID = extractPatientIDfromDocKey(record.get('key'));
+            doc = record.get('doc');
+
+            if (!matchedRecordsToPatients.has(patientID)) {
+                matchedRecordsToPatients = matchedRecordsToPatients
+                    .set(patientID, Immutable.List([doc]));
+            }
+            else {
+                matchedRecordsToPatients = matchedRecordsToPatients
+                    .update(patientID, value => value.push(doc));
+            }
+        })
+
+        const filteredFormsSize = filteredForms.size;
+        const isPatientInfoIncluded = filteredForms.has('patient_info');
+        let patientInfoDoc = Immutable.Map();
+        let filteredPatientDocs = Immutable.Map();
+        
+        
+        matchedRecordsToPatients.forEach((records, patientID) => {
+            if (records.size === filteredFormsSize) {
+                let catgorizedDocs = Immutable.Map();
+                
+                records.forEach(doc => {
+                    if (catgorizedDocs.has(doc.get('type'))) {
+                        catgorizedDocs = catgorizedDocs.update(doc.get('type'), docs => docs.push(doc));
+                    }
+                    else {
+                        catgorizedDocs = catgorizedDocs.set(doc.get('type'), Immutable.List([doc]));
+                    }
+                })
+
+                filteredPatientDocs = filteredPatientDocs.set(patientID, catgorizedDocs);
+
+                patientInfoDoc = patients.find(patient => patient.getIn(['data', '病案号']) === patientID);
+            
+                if (!isPatientInfoIncluded && patientInfoDoc) {
+                    let generalDocs = filteredPatientDocs.getIn([patientID, 'general'], Immutable.List());
+                    
+                    generalDocs = generalDocs.unshift(patientInfoDoc);
+                    filteredPatientDocs = filteredPatientDocs.setIn([patientID, 'general'], generalDocs);
+                }
+            }
+        })
+
+        this.setState({
+            filteredForms,
+            filteredPatientDocs,
+        });
+    };
+
     deletePatient = async (id, name) => {
         const patientDocs = this.state.allDocs
             .filter(doc => doc.get('id', '').endsWith(`:user_${id}`))
@@ -383,7 +482,7 @@ export class PatientTable extends React.Component {
         try {
             var result = await db.bulkDocs(patientDocs);
 
-            const index = this.state.patients.findIndex(patient => patient.get('病案号') === id);
+            const index = this.state.patients.findIndex(patient => patient.getIn(['data', '病案号']) === id);
             
             this.setState((prevState) => ({
                 patients: prevState.patients.delete(index),
@@ -464,142 +563,59 @@ export class PatientTable extends React.Component {
     };
 
     exportToExcel = (id) => {
-        const { filteredForms } = this.state;
-        let docKey;
-        let patientID;
+        // const { filteredPatientDocs } = this.state;
+        // let docKey;
+        // let patientID;
 
-        const singlePatientData = this.state.allDocs.filter(doc => {
-            docKey = doc.get('key'); // like "admission:user_2"
-            patientID = extractPatientIDfromDocKey(docKey);
+        // const singlePatientData = this.state.allDocs.filter(doc => {
+        //     docKey = doc.get('key'); // like "admission:user_2"
+        //     patientID = extractPatientIDfromDocKey(docKey);
 
-            return patientID === String(id);
-        })
+        //     return patientID === String(id);
+        // })
 
-        return exportToExcel(singlePatientData);
+        // return exportToExcel(singlePatientData);
+        exportToExcel(this.state.filteredPatientDocs.get(id));
     };
 
     exportAllToExcel = () => {
-        const { isFilterOn, filters, filteredForms, allDocs } = this.state;
-        let excelData;
+        exportToExcel(this.state.filteredPatientDocs);
 
-        if (!isFilterOn || filters.size === 0) {
-            excelData = allDocs;
-        }
-        else {
-            const matchedDocs = this.applyFiltersToExtractDocs();
-            const matchedPatientIDs = matchedDocs.map(record => extractPatientIDfromDocKey(record.get('key')));
-            let docKey;
-            let patientID;
+        // const { isFilterOn, filters, filteredForms, filteredPatientDocs } = this.state;
+        // let excelData;
 
-            excelData = allDocs.filter(doc => {
-                docKey = doc.get('key'); // like "admission:user_2"
-                patientID = extractPatientIDfromDocKey(docKey);
-                return matchedPatientIDs.includes(patientID);
-            });
-        }
+        // if (!isFilterOn || filters.size === 0) {
+        //     return;
+        // }
+        // else {
+        //     exportToExcel(filteredPatientDocs);
+        //     // const matchedDocs = this.applyFiltersToExtractDocs();
+        //     // const matchedPatientIDs = matchedDocs.map(record => extractPatientIDfromDocKey(record.get('key')));
+        //     // let docKey;
+        //     // let patientID;
 
-        exportToExcel(excelData);
+        //     // excelData = allDocs.filter(doc => {
+        //     //     docKey = doc.get('key'); // like "admission:user_2"
+        //     //     patientID = extractPatientIDfromDocKey(docKey);
+        //     //     return matchedPatientIDs.includes(patientID);
+        //     // });
+        // }
     };
 
     loadTableData = () => {
-        const { isFilterOn, filters, patients } = this.state;
+        const { isFilterOn, filters, patients, filteredPatientDocs } = this.state;
         let patientsData;
 
         if (!isFilterOn || filters.size === 0 || filters.every(filter => filter.size === 0)) {
             patientsData = patients;
         }
         else {
-            const filteredPatients = this.applyFiltersToExtractDocs();
-            const filteredPatientIDs = filteredPatients.keySeq();
-            console.log(filteredPatientIDs.toJS())
-            patientsData = patients.filter(patient => filteredPatientIDs.includes(patient.get('病案号')));
+            const filteredPatientIDs = filteredPatientDocs.keySeq();
+
+            patientsData = patients.filter(patient => filteredPatientIDs.includes(patient.getIn(['data', '病案号'])));
         }
 
-        return patientsData.map((data, index) => data.set('key', index)).toJS();
-    };
-
-    applyFiltersToExtractDocs = () => {
-        const { filters, filteredForms, allDocs } = this.state;
-        console.log(filteredForms.toJS())
-        // filter out the matched form which includes this value
-        const matchedDocs = allDocs
-            .filter(record => 
-                // filter out records of these forms
-                filteredForms.some(form => record.get('key').startsWith(form))
-            )
-        const matchedRecords = matchedDocs
-            .filter(record => 
-                // pass filters for every form specified
-                filters.every((filterConfigs, formName) => {
-                    if (filterConfigs.first()) {
-                        const formPath = filterConfigs.first().get('formPath');
-
-                        // record matches the filter
-                        if (record.get('key').startsWith(formPath)) {
-                            return filterConfigs.every((filterConfig, filterName) => 
-                                isValueInDoc(record, filterName, filterConfig)
-                            );  
-                        }
-                        // unrelevant records
-                        return true;  
-                    }
-                    // no filter
-                    return true;
-                }
-            ))
-        
-        let matchedRecordsToPatients = Immutable.Map();
-        let patientID;
-
-        matchedRecords.forEach(record => {
-            patientID = extractPatientIDfromDocKey(record.get('key'));
-
-            if (!matchedRecordsToPatients.has(patientID)) {
-                matchedRecordsToPatients = matchedRecordsToPatients
-                    .set(patientID, Immutable.List([record]));
-            }
-            else {
-                matchedRecordsToPatients = matchedRecordsToPatients
-                    .update(patientID, value => value.push(record));
-            }
-        })
-
-        const filteredFormsSize = filteredForms.size;
-        let filteredPatients = Immutable.Map();
-        
-        matchedRecordsToPatients.forEach((records, patientID) => {
-            if (records.size === filteredFormsSize) {
-                filteredPatients = filteredPatients.set(patientID, records);
-            }
-        })
-
-        console.log(filteredPatients.toJS(), matchedRecords.toJS())
-        return filteredPatients;
-    };
-
-    applyFiltersToMatchPatientIDs = () => {
-        const { filters, filteredForms, allDocs } = this.state;
-
-        // filter out the matched form which includes this value
-        const matchedPatientIDs = allDocs
-            .filter(record => 
-                // filter out records of these forms
-                filteredForms.some(form => record.get('key').startsWith(form))
-            )
-            .filter(record => 
-                // pass filters for every form specified
-                filters.every((filterConfigs, formName) => {
-                    const formPath = filterConfigs.first().get('formPath');
-
-                    return filterConfigs.every((filterConfig, filterName) => 
-                        isValueInDoc(record, filterName, filterConfig)
-                    );  
-                }
-            ))
-            .map(record => extractPatientIDfromDocKey(record.get('key')))
-
-        console.log(matchedPatientIDs.toJS())
-        return matchedPatientIDs;
+        return patientsData.map((data, index) => data.get('data').set('key', index)).toJS();
     };
 
     // subformKey is the sub form title

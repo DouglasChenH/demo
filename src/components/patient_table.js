@@ -581,7 +581,10 @@ export class PatientTable extends React.Component {
         // })
 
         // return exportToExcel(singlePatientData);
-        exportToExcel(this.state.filteredPatientDocs.get(id));
+        const singlePatientData = this.state.filteredPatientDocs.get(id);
+        const singlePatientDocs = Immutable.Map().set(id, singlePatientData);
+
+        exportToExcel(singlePatientDocs);
     };
 
     exportAllToExcel = () => {

@@ -6,7 +6,7 @@ import { formatRawDocData, fetchDataMixin, submitDataMixin } from '../../utils/m
 import { DynamicForm, NestedForm } from "../../generics";
 import { NestedOuterForm, NestedInnerForm } from '../../generics/nested_form/index';
 
-export class NewbornEEG extends React.Component {
+export class NonNewbornEEG extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -83,12 +83,8 @@ export class NewbornEEG extends React.Component {
         const fields = Immutable.fromJS([
             [
                 {
-                    name: '胎龄（GA）',
-                    type: 'text',
-                },
-                {
-                    name: '矫正胎龄（PMA）',
-                    type: 'text',
+                    name: '年龄',
+                    type: 'number',
                 },
                 {
                     name: '检查日期',
@@ -120,129 +116,23 @@ export class NewbornEEG extends React.Component {
                     type: 'text',
                 },
                 {
-                    name: 'EEG背景连续性',
-                    type: 'radio',
-                    options: [
-                        "正常连续",
-                        "正常不连续",
-                        "不连续",
-                        "过度不连续",
-                        "爆发抑制",
-                        ""
-                    ],
-                },
-                {
-                    name: '背景波左右对称性',
-                    type: 'radio',
-                    options: [
-                        "对称",
-                        "不对称",
-                        ""
-                    ],
-                },
-            ],
-            [
-                {
-                    name: '背景波左右同步性',
-                    type: 'radio',
-                    options: [
-                        "同步",
-                        "不同步",
-                        ""
-                    ],
-                },
-                {
-                    name: '背景波电压',
+                    name: 'EEG背景',
                     type: 'radio',
                     options: [
                         "正常",
-                        "边缘",
-                        "异常（低电压）",
-                        "异常（无脑电活动）",
+                        "缓慢-紊乱",
+                        "不连续",
+                        "爆发抑制",
+                        "持续抑制",
                         ""
                     ],
                 },
                 {
-                    name: '背景波变化性',
-                    type: 'radio',
-                    options: [
-                        "是",
-                        "否",
-                        ""
-                    ],
+                    name: '背景频率（Hz）',
+                    type: 'text',
                 },
             ],
             [
-                {
-                    name: '背景波反应性',
-                    type: 'radio',
-                    options: [
-                        "是",
-                        "否",
-                        ""
-                    ],
-                },
-                {
-                    name: '背景波不成熟',
-                    type: 'radio',
-                    options: [
-                        "是",
-                        "否",
-                        ""
-                    ],
-                },
-                {
-                    name: '清醒阶段波形',
-                    type: 'radio',
-                    options: [
-                        "连续",
-                        "交替",
-                        "非连续",
-                        "过度非连续",
-                        ""
-                    ],
-                },
-            ],
-            [
-                {
-                    name: '睡眠阶段波形',
-                    type: 'radio',
-                    options: [
-                        "连续",
-                        "交替",
-                        "非连续",
-                        "过度非连续",
-                        ""
-                    ],
-                },
-                {
-                    name: '仅有清醒阶段',
-                    type: 'radio',
-                    options: [
-                        "是",
-                        "否",
-                        ""
-                    ],
-                },
-                {
-                    name: '无清醒-睡眠周期',
-                    type: 'radio',
-                    options: [
-                        "是",
-                        "否",
-                        ""
-                    ],
-                },
-            ],
-            [
-                {
-                    name: '暴发间隔时间（秒）',
-                    type: 'number',
-                },
-                {
-                    name: '爆发时间（秒）',
-                    type: 'number',
-                },
                 {
                     name: '脑电图癫痫',
                     type: 'radio',
@@ -250,6 +140,93 @@ export class NewbornEEG extends React.Component {
                         "无",
                         "癫痫发作",
                         "持续性癫痫",
+                        ""
+                    ],
+                },
+                {
+                    name: '左右对称性 ',
+                    type: 'radio',
+                    options: [
+                        "对称",
+                        "不对称",
+                        ""
+                    ],
+                },
+                {
+                    name: '波形',
+                    type: 'radio',
+                    options: [
+                        "衰减",
+                        "Delta",
+                        "Delta + Theta",
+                        "Delta+theta+alpha",
+                        ""
+                    ],
+                },
+            ],
+            [
+                {
+                    name: '连续性',
+                    type: 'radio',
+                    options: [
+                        "连续",
+                        "几乎连续，伴随衰减",
+                        "几乎连续，伴随抑制",
+                        "不连续，伴随衰减",
+                        "不连续，伴随抑制",
+                        "爆发衰减",
+                        "爆发抑制",
+                        "抑制",
+                        ""
+                    ],
+                },
+                {
+                    name: '电压',
+                    type: 'radio',
+                    options: [
+                        "正常",
+                        "低",
+                        "抑制",
+                        ""
+                    ],
+                },
+                {
+                    name: '阶段2脑电变化',
+                    type: 'radio',
+                    options: [
+                        "出现且正常",
+                        "出现但异常",
+                        "消失",
+                        "清醒",
+                        ""
+                    ],
+                },
+            ],
+            [
+                {
+                    name: '反应性',
+                    type: 'radio',
+                    options: [
+                        "出现",
+                        "未出现",
+                        ""
+                    ],
+                },
+                {
+                    name: '脑电波变化性',
+                    type: 'radio',
+                    options: [
+                        "出现",
+                        "未出现",
+                        ""
+                    ],
+                },
+                {
+                    name: '出现反应性或变异性',
+                    type: 'radio',
+                    options: [
+                        "出现",
+                        "未出现",
                         ""
                     ],
                 },
@@ -272,23 +249,6 @@ export class NewbornEEG extends React.Component {
                 },
                 {
                     name: '尖波出现位置',
-                    type: 'text',
-                },
-            ],
-            [
-                {
-                    name: 'Delta刷',
-                    type: 'radio',
-                    options: [
-                        "1",
-                        "2",
-                        "3",
-                        "4",
-                        ""
-                    ],
-                },
-                {
-                    name: 'Delta刷出现位置',
                     type: 'text',
                 },
             ],
@@ -404,7 +364,7 @@ export class NewbornEEG extends React.Component {
                     fields={this.createEEGFields()}
                     firstLayerFields={this.createResultFields()}
                     secondLayerFields={this.createFields()}
-                    columns={5}
+                    columns={4}
                     isForFilters={!id}
                     onValuesChange={this.props.onValuesChange}
                     title="新生儿脑电图检查基本信息"
@@ -434,18 +394,18 @@ export class NewbornEEG extends React.Component {
     }
 }
 
-NewbornEEG.propTypes = {
+NonNewbornEEG.propTypes = {
     id: PropTypes.string,
     path: PropTypes.string,
     title: PropTypes.string,
     onValuesChange: PropTypes.func,
 };
 
-NewbornEEG.defaultProps = {
+NonNewbornEEG.defaultProps = {
     id: '',
     path: '',
     title: '',
     onValuesChange: () => {},
 };
 
-export default NewbornEEG;
+export default NonNewbornEEG;

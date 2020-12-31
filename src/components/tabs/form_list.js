@@ -23,7 +23,7 @@ import {
 } from './patient_info';
 import {
     NewbornEEG,
-    // NonNewbornEEG,
+    NonNewbornEEG,
 } from './EEG';
 import {
     VenousPressureRecord,
@@ -202,10 +202,10 @@ export const FORM_NAME_MAP = {
             name: "新生儿脑电图检查基本信息",
             component: NewbornEEG,
         },
-        // non_newborn_EEG: {
-        //     name: "非新生儿脑电图检查基本信息",
-        //     component: NonNewbornEEG,
-        // },
+        non_newborn_EEG: {
+            name: "非新生儿脑电图检查基本信息",
+            component: NonNewbornEEG,
+        },
     },
     ICU: {
         venous_pressure_record: {

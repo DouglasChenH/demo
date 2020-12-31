@@ -149,47 +149,6 @@ export class NestedOuterForm extends React.Component {
             baseFormData.forEach((form, index) => {
                 prepData = prepData.setIn([index, 'general'], form)
             })
-            // let childFormData = Immutable.List();
-            // let generalPart;
-            // let dynamicPart;
-
-            // console.log(this.state.records.toJS())
-            // return;
-            // this.state.formValues.forEach(layer => {
-            //     generalPart = Immutable.Map();
-            //     dynamicPart = Immutable.List();
-
-            //     if (layer.has('general')) {
-            //         generalPart = formatFormValues(layer.get('general'), this.props.firstLayerFields);
-            //     }
-            //     if (layer.has('dynamic')) {
-            //         let subDynamicPart = Immutable.Map();
-            //         layer.get('dynamic').forEach(secondLayer => {
-            //             if (secondLayer.has('general')) {
-            //                 subDynamicPart = subDynamicPart.set('general', formatFormValues(secondLayer.get('general'), this.props.secondLayerFields));
-            //                 dynamicPart = dynamicPart.push(subDynamicPart);
-            //             }
-            //             if (secondLayer.has('dynamic')) {
-            //                 // not used
-            //             }
-            //         });
-            //     }
-
-            //     childFormData = childFormData.push(Immutable.Map({
-            //         general: generalPart,
-            //         dynamic: dynamicPart
-            //     }));
-            // });
-        
-            // // console.log(this.state.formValues.toJS(), childFormData.toJS())
-
-            // const baseFormData = formatFormValues(Immutable.fromJS(values), this.props.fields);
-            // prepData = baseFormData.map((form, formLayerIndex) => {
-            //     return Immutable.Map({
-            //         general: form,
-            //         dynamic: childFormData.get(formLayerIndex)
-            //     })
-            // })
         })
 
         return prepData;

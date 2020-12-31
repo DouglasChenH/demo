@@ -129,6 +129,7 @@ export class Operations extends React.Component {
             >
                 <DynamicForm
                     wrappedComponentRef={(form) => this.form = form}
+                    title="手术及操作"
                     values={values}
                     fields={this.createFields()}
                     columns={4}

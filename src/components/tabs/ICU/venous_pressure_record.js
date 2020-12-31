@@ -132,7 +132,7 @@ export class VenousPressureRecord extends React.Component {
                     fields={this.createDynamicFields()}
                     columns={3}
                     isForFilters={!id}
-                    onValuesChange={onValuesChange}
+                    onValuesChange={(...args) => onValuesChange(...args, '中心静脉压 （cmH2O）')}
                 />
                 <hr />
                 <GeneralForm
@@ -141,7 +141,7 @@ export class VenousPressureRecord extends React.Component {
                     fields={this.createGeneralFields()}
                     columns={3}
                     isForFilters={!id}
-                    onValuesChange={onValuesChange}
+                    onValuesChange={(...args) => onValuesChange(...args, 'general')}
                 />
             </SharedFrame>
         );

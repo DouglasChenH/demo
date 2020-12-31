@@ -1,6 +1,7 @@
 import XLSX from 'xlsx';
 import Immutable from "immutable";
 import { FORM_NAME_TRANSLATOR } from '../tabs/form_list';
+import { extractFormKeyfromDocKey } from './mixin';
 
 function Workbook() {
     if (!(this instanceof Workbook))
@@ -51,17 +52,54 @@ export function exportToExcel(rawData) {
     // }
 
     rawData.forEach((categorizedDocs, patientID) => {
+        const patientInfo = categorizedDocs.get('general').find(doc => doc.get("_id") === `patient_info:user_${patientID}`)
+        
+        // key is the ICU time, value is the list of usage at this time
+        let ICUTimeAndUsage = Immutable.Map();
         let rowGeneralData = Immutable.OrderedMap({
             '病案号': patientID
         });
-
-        // key is the ICU time, value is the list of usage at this time
-        let ICUTimeAndUsage = Immutable.Map();
-        
+        // each sheet starts with the patient info
+        rowGeneralData = rowGeneralData.merge(patientInfo.get('data'));
+        const dynamicSheetGeneralData = rowGeneralData;
 
         categorizedDocs.forEach((docs, type) => {
             if (type === 'general') {
-                docs.forEach(doc => rowGeneralData = rowGeneralData.merge(doc.get('data')))
+                docs.forEach(doc => {
+                    if (doc.get("_id") !== `patient_info:user_${patientID}`) {
+                        rowGeneralData = rowGeneralData.merge(doc.get('data'));
+                    }
+                });
+            }
+            if (type === 'dynamic') {
+                docs.forEach(doc => {
+                    const dynamicRows = doc.get('data').map(row => 
+                        dynamicSheetGeneralData.merge(row)
+                    );
+                    const sheetKey = extractFormKeyfromDocKey(doc.get("_id"));
+                    // add the dynamic data to the excel
+                    let sheetData = excelData.get(sheetKey, Immutable.List());
+                    
+                    sheetData = sheetData.concat(dynamicRows);
+                    excelData = excelData.set(sheetKey, sheetData);
+                });
+            }
+            if (type === 'mixed') {
+                docs.forEach(doc => {
+                    const generalData = doc.getIn(['data', 'general'], Immutable.Map());
+                    const mixedSheetGeneralData =  dynamicSheetGeneralData.merge(generalData);
+
+                    const dynamicRows = doc.getIn(['data', 'dynamic'], Immutable.List()).map(row => 
+                        mixedSheetGeneralData.merge(row)
+                    );
+
+                    const sheetKey = extractFormKeyfromDocKey(doc.get("_id"));
+                    // add the dynamic data to the excel
+                    let sheetData = excelData.get(sheetKey, Immutable.List());
+                    
+                    sheetData = sheetData.concat(dynamicRows);
+                    excelData = excelData.set(sheetKey, sheetData);
+                });
             }
             if (type === 'multi-dynamic' || type === 'mixed-multi-dynamic') {
                 docs.forEach(doc => {
@@ -93,15 +131,21 @@ export function exportToExcel(rawData) {
         
         console.log(ICUTimeAndUsage.toJS())
 
-        ICUTimeAndUsage.forEach((ICUUsageData, ICUTime) => {
-            let patientRowData = Immutable.OrderedMap();
-            patientRowData = patientRowData
-                .set('ICU时间点', ICUTime)
-                .merge(rowGeneralData)
-                .merge(ICUUsageData);
-            patientExcelData = patientExcelData.push(patientRowData);
-        })
-
+        if (ICUTimeAndUsage.size > 0) {
+            ICUTimeAndUsage.forEach((ICUUsageData, ICUTime) => {
+                let patientRowData = Immutable.OrderedMap();
+                patientRowData = patientRowData
+                    .set('ICU时间点', ICUTime)
+                    .merge(rowGeneralData)
+                    .merge(ICUUsageData);
+                patientExcelData = patientExcelData.push(patientRowData);
+            })
+        }
+        // all general forms
+        else {
+            patientExcelData = patientExcelData.push(rowGeneralData);
+        }
+        
         console.log(patientExcelData.toJS())
 
         // add the patient data to the excel

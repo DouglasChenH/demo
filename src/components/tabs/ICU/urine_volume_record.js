@@ -133,7 +133,7 @@ export class UrineVolumeRecord extends React.Component {
                     fields={this.createDynamicFields()}
                     columns={3}
                     isForFilters={!id}
-                    onValuesChange={onValuesChange}
+                    onValuesChange={(...args) => onValuesChange(...args, '尿量（ml）')}
                 />
                 <hr />
                 <GeneralForm
@@ -142,7 +142,7 @@ export class UrineVolumeRecord extends React.Component {
                     fields={this.createGeneralFields()}
                     columns={3}
                     isForFilters={!id}
-                    onValuesChange={onValuesChange}
+                    onValuesChange={(...args) => onValuesChange(...args, 'general')}
                 />
             </SharedFrame>
         );

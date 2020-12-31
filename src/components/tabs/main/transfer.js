@@ -86,6 +86,7 @@ export class Transfer extends React.Component {
             >
                 <DynamicForm
                     wrappedComponentRef={(form) => this.form = form}
+                    title="转科"
                     values={values}
                     fields={this.createFields()}
                     columns={2}

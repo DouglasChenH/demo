@@ -137,8 +137,10 @@ function isValueInDoc(doc, filterName, filterConfig) {
         return docData.some(map => isValueInMap(map, fieldName, filterValue, type));
     }
     if (docType === 'mixed') {
-        return isValueInMap(docData.get('general'), fieldName, filterValue, type) ||
-        docData.get('dynamic').some(map => isValueInMap(map, fieldName, filterValue, type));
+        if (subformKey === 'general') {
+            return isValueInMap(docData.get('general'), fieldName, filterValue, type);
+        }
+        return docData.get('dynamic', Immutable.List()).some(map => isValueInMap(map, fieldName, filterValue, type));
     }
     // "multi-dynamic": multiple dynamic forms
     if (docType === 'multi-dynamic') {
@@ -146,8 +148,11 @@ function isValueInDoc(doc, filterName, filterConfig) {
     }
     // "mixed-multi-dynamic"： mix of a general from and a multi-dynamic form
     if (docType === 'mixed-multi-dynamic') {
-        return isValueInMap(docData.get('general'), fieldName, filterValue, type) ||
-        docData.getIn(['dynamic', subformKey]).some(map => isValueInMap(map, fieldName, filterValue, type));
+        if (subformKey === 'general') {
+            return isValueInMap(docData.get('general'), fieldName, filterValue, type);
+        }
+
+        return docData.getIn(['dynamic', subformKey], Immutable.List()).some(map => isValueInMap(map, fieldName, filterValue, type));
     }
     // "nested": nested dynimic forms
     if (docType === 'nested') {
@@ -331,8 +336,8 @@ export class PatientTable extends React.Component {
     componentDidUpdate(prevProps, prevState) {
         const { isFilterOn, filters, allDocs } = this.state;
 
+        console.log(filters.toJS())
         if (isFilterOn) {
-            console.log(filters.toJS())
             if (!prevState.filters.equals(filters) ||
                 !prevState.allDocs.equals(allDocs)) {
                 this.applyFiltersToExtractDocs();
@@ -463,6 +468,7 @@ export class PatientTable extends React.Component {
             }
         })
 
+        console.log(filteredPatientDocs.toJS())
         this.setState({
             filteredForms,
             filteredPatientDocs,
@@ -621,7 +627,7 @@ export class PatientTable extends React.Component {
     // subformKey is the sub form title
     // key is the changed form field
     onFilterValuesChange = (formName, formPath, key, value, fieldType, subformKey = undefined) => {
-        const filterName = (subformKey && subformKey !== key) ? `${subformKey} - ${key}` : key;
+        const filterName = (subformKey && subformKey !== key && subformKey !== 'general') ? `${subformKey} - ${key}` : key;
 
         if (fieldType === 'text' && !value) {
             this.setState(prevState => ({

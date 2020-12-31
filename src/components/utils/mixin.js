@@ -4,11 +4,16 @@ import { db } from '../../db/database';
 import { showSuccess, showError } from './notification';
 import { SPECIAL_MOMENT_FIELDS_NOT_TIME_FORMATS } from '../tabs/form_list';
 
-// convert time string to moment
-// skip other values
+
 export function extractPatientIDfromDocKey(key) {
     return key.slice(key.indexOf(':user_') + 6);
 }
+
+
+export function extractFormKeyfromDocKey(key) {
+    return key.slice(0, key.indexOf(':user_'));
+}
+
 
 // convert time string to moment
 // skip other values

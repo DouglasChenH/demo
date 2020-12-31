@@ -67,6 +67,28 @@ export class DischargeDiagnosis extends React.Component {
         }
     };
 
+    createGeneralFields = () => {
+        const fields = Immutable.fromJS([
+            [
+                {
+                    name: '主要诊断-疾病名称',
+                    type: 'text'
+                },
+                {
+                    name: '主要诊断-疾病编码',
+                    type: 'text'
+                },
+                {
+                    name: '主要诊断-入院病情',
+                    type: 'radio',
+                    options: ['有', '临床未确定', "情况不明", "无", ""],
+                },
+            ]
+        ]);
+
+        return fields;
+    };
+
 
     createFields = () => {
         const fields = Immutable.fromJS([
@@ -106,15 +128,16 @@ export class DischargeDiagnosis extends React.Component {
                 <GeneralForm
                     wrappedComponentRef={(form) => this.generalForm = form}
                     values={genaralValues}
-                    fields={fields}
+                    fields={this.createGeneralFields()}
                     columns={3}
                     isForFilters={!id}
-                    onValuesChange={onValuesChange}
+                    onValuesChange={(...args) => onValuesChange(...args, 'general')}
                 />
-                <h3>{"其他诊断"}</h3>
+                <h3>{"其它诊断"}</h3>
                 <hr />
                 <DynamicForm
                     wrappedComponentRef={(form) => this.dynamicForm = form}
+                    title="其它诊断"
                     values={dynamicValues}
                     fields={fields}
                     columns={3}

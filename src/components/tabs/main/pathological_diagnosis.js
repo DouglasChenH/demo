@@ -90,6 +90,7 @@ export class PathologicalDiagnosis extends React.Component {
             >
                 <DynamicForm
                     wrappedComponentRef={(form) => this.form = form}
+                    title="病理诊断"
                     values={values}
                     fields={this.createFields()}
                     columns={3}

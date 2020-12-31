@@ -86,6 +86,7 @@ export class ExternalCauses extends React.Component {
             >
                  <DynamicForm
                     wrappedComponentRef={(form) => this.form = form}
+                    title="外部原因"
                     values={values}
                     fields={this.createFields()}
                     columns={2}

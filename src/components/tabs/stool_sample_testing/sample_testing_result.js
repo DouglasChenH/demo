@@ -91,6 +91,17 @@ export class SampleTestingResult extends React.Component {
                     
                 })
                 .catch(err => {
+                    if (err.error === 'not_found') {
+                        submitDataMixin(doc, id, title)
+                            .then(rev => {
+                                this.setState({
+                                    _rev: rev,
+                                });
+                            })
+                            .catch(err => {
+                                console.log(err);
+                            })
+                    }
                     console.log(err);
                 })
         }

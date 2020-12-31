@@ -15,7 +15,7 @@ import {
   Upload,
   Icon,
 } from "antd";
-import { deleteAttachmentMixin } from '../utils/mixin';
+import { deleteAttachmentMixin, downloadAttachmentMixin, downloadBlob } from '../utils/mixin';
 
 const { RangePicker } = DatePicker;
 const { Option, OptGroup } = Select;
@@ -24,7 +24,6 @@ function disabledDate(current) {
   // Can not select days after today
   return current > moment().endOf('day');
 }
-
 
 export class NumberRangeInput extends React.Component {
     triggerChange = changedValue => {
@@ -154,6 +153,15 @@ export class InputComponent extends React.Component {
                         const newFileList = value.delete(index);
 
                         this.triggerChange(newFileList);
+                    },
+                    onPreview: file => {
+                        // load it from the db
+                        if (file.status === 'done') {
+                            downloadAttachmentMixin(file.url, file.name, file.fieldName);
+                        }
+                        else {
+                            downloadBlob(file, file.name);
+                        } 
                     },
                     beforeUpload: file => {
                         this.triggerChange(Immutable.List.isList(value) ? value.push(file) : Immutable.List([file]));

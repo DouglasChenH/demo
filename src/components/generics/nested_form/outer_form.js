@@ -46,15 +46,6 @@ export const formatFormValues = (values, fields) => {
                     }
                     
                 }
-                // if (fieldType === 'datetime') {
-                //     fieldValue = fieldValue.format('YYYY-MM-DD HH:mm');     
-                // }
-                // else if (fieldType === 'date') {
-                //     fieldValue = fieldValue.format('YYYY-MM-DD');     
-                // }
-                // else if (fieldType === 'time') {
-                //     fieldValue = fieldValue.format('HH:mm:ss');     
-                // }
                 else if (fieldType === 'number') {
                     if (fieldValue === null || fieldValue === undefined ) {
                         fieldValue = null;
@@ -78,7 +69,7 @@ export const formatFormValues = (values, fields) => {
 }
 
 
-export class Nested1stForm extends React.Component {
+export class NestedOuterForm extends React.Component {
     state = {
         records: Immutable.List([Immutable.Map()]),
         activeKey: '0',
@@ -114,7 +105,7 @@ export class Nested1stForm extends React.Component {
                 // help={this.getFeedback(field)}
             >
                 {getFieldDecorator(`${fieldName}[${rowIndex}]`, {
-                    initialValue: records.getIn([rowIndex, fieldName]),
+                    initialValue: records.getIn([rowIndex, 'general', fieldName]),
                     rules: [
                         {
                             required: field.get('required', false),
@@ -135,21 +126,13 @@ export class Nested1stForm extends React.Component {
         this.setState(prevState => ({
             records: prevState.records.push(Immutable.Map()),
             activeKey: String(prevState.records.size)
-        }), () => {
-            // this.setState({ activeKey: String(this.state.records.size - 1})
-            // jump to the new added record
-            // const recordForms = document.getElementsByClassName("single-record-form");
-            // const lastRecordForm = recordForms[recordForms.length - 1];
-
-            // lastRecordForm.setAttribute('tabindex', '-1');
-            // lastRecordForm.focus();
-            // lastRecordForm.removeAttribute('tabindex');
-        });
+        }));
     };
 
     remove = (index) => {
         this.setState(prevState => ({
-            records: prevState.records.delete(index)
+            records: prevState.records.delete(index),
+            activeKey: String(prevState.records.size - 2)
         }));
     };
 
@@ -161,125 +144,119 @@ export class Nested1stForm extends React.Component {
                 return;
             }
 
-            let childFormData = Immutable.List();
-            let generalPart;
-            let dynamicPart;
-
-            this.state.formValues.forEach(layer => {
-                generalPart = Immutable.Map();
-                dynamicPart = Immutable.List();
-
-                if (layer.has('general')) {
-                    generalPart = formatFormValues(layer.get('general'), this.props.firstLayerFields);
-                }
-                if (layer.has('dynamic')) {
-                    let subDynamicPart = Immutable.Map();
-                    layer.get('dynamic').forEach(secondLayer => {
-                        if (secondLayer.has('general')) {
-                            subDynamicPart = subDynamicPart.set('general', formatFormValues(secondLayer.get('general'), this.props.secondLayerFields));
-                            dynamicPart = dynamicPart.push(subDynamicPart);
-                        }
-                        if (secondLayer.has('dynamic')) {
-                            // not used
-                        }
-                    });
-                }
-
-                childFormData = childFormData.push(Immutable.Map({
-                    general: generalPart,
-                    dynamic: dynamicPart
-                }));
-            });
-        
-            // console.log(this.state.formValues.toJS(), childFormData.toJS())
-
+            prepData = this.state.records;
             const baseFormData = formatFormValues(Immutable.fromJS(values), this.props.fields);
-            prepData = baseFormData.map((form, formLayerIndex) => {
-                return Immutable.Map({
-                    general: form,
-                    dynamic: childFormData.get(formLayerIndex)
-                })
+            baseFormData.forEach((form, index) => {
+                prepData = prepData.setIn([index, 'general'], form)
             })
+            // let childFormData = Immutable.List();
+            // let generalPart;
+            // let dynamicPart;
+
+            // console.log(this.state.records.toJS())
+            // return;
+            // this.state.formValues.forEach(layer => {
+            //     generalPart = Immutable.Map();
+            //     dynamicPart = Immutable.List();
+
+            //     if (layer.has('general')) {
+            //         generalPart = formatFormValues(layer.get('general'), this.props.firstLayerFields);
+            //     }
+            //     if (layer.has('dynamic')) {
+            //         let subDynamicPart = Immutable.Map();
+            //         layer.get('dynamic').forEach(secondLayer => {
+            //             if (secondLayer.has('general')) {
+            //                 subDynamicPart = subDynamicPart.set('general', formatFormValues(secondLayer.get('general'), this.props.secondLayerFields));
+            //                 dynamicPart = dynamicPart.push(subDynamicPart);
+            //             }
+            //             if (secondLayer.has('dynamic')) {
+            //                 // not used
+            //             }
+            //         });
+            //     }
+
+            //     childFormData = childFormData.push(Immutable.Map({
+            //         general: generalPart,
+            //         dynamic: dynamicPart
+            //     }));
+            // });
+        
+            // // console.log(this.state.formValues.toJS(), childFormData.toJS())
+
+            // const baseFormData = formatFormValues(Immutable.fromJS(values), this.props.fields);
+            // prepData = baseFormData.map((form, formLayerIndex) => {
+            //     return Immutable.Map({
+            //         general: form,
+            //         dynamic: childFormData.get(formLayerIndex)
+            //     })
+            // })
         })
 
         return prepData;
     };
 
     renderChildForm = (index) => {
-        const { renderChildren } = this.props;
-
-        if (renderChildren === 'none') {
-            return null;
-        }
-  
         const children = React.cloneElement(
             this.props.children,
             { 
-                values: this.state.records.getIn([index, 'dynamic']),
+                values: this.state.records.getIn([index, 'dynamic'], Immutable.List()),
                 parentIndexes: this.props.parentIndexes.push(index),
                 onValuesChange: (changedValues, allValues, parentIndexes) => this.onValuesChange(changedValues, allValues, parentIndexes)
             }
         );
 
-        if (renderChildren === 'all') {
-            return (
-                <div>
-                    <br />
-                    {children}
-                </div>
-            );
-        }
-        if (renderChildren === 'conditional') {
-            // handle special cases here
-            const flagValue = this.props.form.getFieldValue(`脑电图癫痫[${index}]`);
-
-            if (flagValue === '癫痫发作' || flagValue === '持续性癫痫') {
-                return children;
-            }
-        }
-
-        return null;
+        return (
+            <div>
+                <br />
+                {children}
+            </div>
+        );
     };
 
     onValuesChange = (changedValues, allValues, index) => {
-        // first layer
-        if (this.props.parentIndexes.size === 0) {
-            console.log(index.toJS(), allValues);
+        let formValues = this.state.records;
+        const firstChildIndex = index.first();
+        const secondChildIndex = index.last();
 
-            let formValues = this.state.formValues;
-            const firstChildIndex = index.first();
-            const secondChildIndex = index.last();
+        // updating the first child
+        if (index.size === 1) {
+            // the list of 脑电图检查结果 ordered from 0 to n
+            const updatedValues = formatFormValues(Immutable.fromJS(allValues), this.props.firstLayerFields);
 
-            if (index.size === 1) {
-                formValues = formValues.setIn([index.first(), 'general'], Immutable.Map(allValues));
+            if (!formValues.getIn([index.first(), 'dynamic'])) {
+                formValues = formValues.setIn([index.first(), 'dynamic'], Immutable.List());
             }
-            if (index.size === 2) {
-                if (!formValues.getIn([index.first(), 'dynamic'])) {
-                    formValues = formValues.setIn([index.first(), 'dynamic'], Immutable.List());
-                }
-                formValues = formValues.setIn([index.first(), 'dynamic', index.last(), 'general'], Immutable.Map(allValues));
+
+            updatedValues.forEach((firstChildValues, firstChildIndex) => {
+                formValues = formValues.setIn([index.first(), 'dynamic', firstChildIndex, 'general'], firstChildValues);
+            })
+        }
+        // updating the second child
+        if (index.size === 2) {
+            console.log(formValues.toJS())
+            // second child
+            if (!formValues.getIn([index.first(), 'dynamic'])) {
+                formValues = formValues.setIn([index.first(), 'dynamic'], Immutable.List());
             }
-            
-            this.setState({
-                formValues
+
+            if (!formValues.getIn([index.first(), 'dynamic', index.last(), 'dynamic'])) {
+                formValues = formValues.setIn([index.first(), 'dynamic', index.last(), 'dynamic'], Immutable.List());
+            }
+            console.log(formValues.toJS())
+            const updatedValues = formatFormValues(Immutable.fromJS(allValues), this.props.secondLayerFields);
+
+            updatedValues.forEach((secondChildValues, secondChildIndex) => {
+                formValues = formValues.setIn([index.first(), 'dynamic', index.last(), 'dynamic', secondChildIndex, 'general'], secondChildValues);
+                // formValues = formValues.setIn([index.first(), 'dynamic', firstChildIndex, 'general'], updatedValues);
             })
             console.log(formValues.toJS())
         }
-        else {
-            this.props.onValuesChange(changedValues, allValues, index);
-        }
-        // // first layer
-        // if (parentIndexes.size === 2) {
-        //     formValues = formValues.set(0, allValues)
-        // }
-        // parentIndexes.forEach(formLayerIndex => 
-        //     formValues = formValues.set(formLayerIndex, allValues)
-        // )
-
-        // this.setState({ formValues });
-
-        // console.log(formValues.toArray())
-    // }
+        
+        this.setState({
+            records: formValues
+        })
+        console.log(formValues.toJS())
+    
     };
 
     onTabChange = activeKey => {
@@ -403,11 +380,11 @@ function onValuesChange(props, changedValues, allValues) {
     }
 }
 
-Nested1stForm = Form.create({
+NestedOuterForm = Form.create({
     onValuesChange: onValuesChange,
-})(Nested1stForm)
+})(NestedOuterForm)
 
-Nested1stForm.propTypes = {
+NestedOuterForm.propTypes = {
     isForFilters: PropTypes.bool,
     onValuesChange: PropTypes.func,
     fields: PropTypes.instanceOf(Immutable.List),
@@ -417,7 +394,7 @@ Nested1stForm.propTypes = {
     renderChildren: PropTypes.string,
     parentIndexes: PropTypes.instanceOf(Immutable.List),
 };
-Nested1stForm.defaultProps = {
+NestedOuterForm.defaultProps = {
     isForFilters: false,
     onValuesChange: () => {},
     fields: Immutable.List([Immutable.Map()]),
@@ -428,4 +405,4 @@ Nested1stForm.defaultProps = {
     parentIndexes: Immutable.List(),
 };
 
-export default Nested1stForm;
+export default NestedOuterForm;

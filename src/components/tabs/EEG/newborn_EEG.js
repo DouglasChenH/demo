@@ -4,14 +4,13 @@ import React from "react";
 import { SharedFrame } from '../shared_frame';
 import { formatRawDocData, fetchDataMixin, submitDataMixin } from '../../utils/mixin';
 import { DynamicForm, NestedForm } from "../../generics";
-import { Nested1stForm } from '../../generics/nested_form/nested_1st_form';
+import { NestedOuterForm, NestedInnerForm } from '../../generics/nested_form/index';
 
 export class NewbornEEG extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             values: Immutable.List([Immutable.Map()]),
-            formValues: Immutable.Map(),
             isLoading: true,
             _rev: undefined,
         };
@@ -19,16 +18,25 @@ export class NewbornEEG extends React.Component {
 
     componentDidMount() {
         const { id, path, title } = this.props;
-        // fetchDataMixin(id, path, title)
-        //     .then(doc => {
-        //         this.setState({
-        //             values: Immutable.fromJS(doc.data),
-        //             _rev: doc._rev,
-        //         });
-        //     })
-        //     .catch(err => {
-        //         console.log(err);
-        //     })
+        fetchDataMixin(id, path, title)
+            .then(doc => {
+                const values = Immutable.fromJS(doc.data)
+                        .map((outerFormValue, key) => {
+                            let value = outerFormValue
+                                .set('general', formatRawDocData(
+                                    outerFormValue.get('general', Immutable.Map())
+                                ));
+                            
+                            return value;
+                        });
+                this.setState({
+                    values: values,
+                    _rev: doc._rev,
+                });
+            })
+            .catch(err => {
+                console.log(err);
+            })
     }
 
     handleSubmit = e => {
@@ -332,37 +340,6 @@ export class NewbornEEG extends React.Component {
         return fields;
     };
 
-    onValuesChange = (...args) => {
-        if (!this.props.id) {
-            this.props.onValuesChange(...args);
-        }
-        else {
-            // const changedValues = args[0];
-            // const allValues = args[1];
-            // const parentIndexes = args[2];
-            // // changedValues, allValues, props.parentIndexes
-            // let formValues = this.state.formValues;
-            // console.log(parentIndexes.toJS(), allValues)
-
-            // // first layer
-            // if (parentIndexes.size === 1) {
-            //     formValues = formValues.set(0, allValues)
-            // }
-            // // first layer
-            // if (parentIndexes.size === 2) {
-            //     formValues = formValues.set(0, allValues)
-            // }
-            // parentIndexes.forEach(formLayerIndex => 
-            //     formValues = formValues.set(formLayerIndex, allValues)
-            // )
-
-            // this.setState({ formValues });
-
-            // console.log(formValues.toArray())
-        }
-        // values: Immutable.List(Immutable.Map()),
-    };
-
     render() {
         const { id, title } = this.props;
         const { values, isLoading } = this.state;
@@ -373,7 +350,7 @@ export class NewbornEEG extends React.Component {
                 handleSubmit={this.handleSubmit}
                 isForFilters={!id}
             >
-                <Nested1stForm
+                <NestedOuterForm
                     wrappedComponentRef={(form) => this.form = form}
                     layer={0}
                     values={values}
@@ -382,10 +359,10 @@ export class NewbornEEG extends React.Component {
                     secondLayerFields={this.createFields()}
                     columns={5}
                     isForFilters={!id}
-                    onValuesChange={this.onValuesChange}
+                    onValuesChange={this.props.onValuesChange}
                     title="新生儿脑电图检查基本信息"
                 >   
-                    <Nested1stForm
+                    <NestedInnerForm
                         // wrappedComponentRef={(form) => this.form = form}
                         layer={1}
                         // values={values}
@@ -396,7 +373,7 @@ export class NewbornEEG extends React.Component {
                         title="脑电图检查结果"
                         renderChildren={'conditional'}
                     >   
-                        <Nested1stForm
+                        <NestedInnerForm
                             // wrappedComponentRef={(form) => this.form = form}
                             layer={2}
                             // values={values}
@@ -407,9 +384,9 @@ export class NewbornEEG extends React.Component {
                             title="癫痫发作"
                             renderChildren={'none'}
                         /> 
-                    </Nested1stForm>  
+                    </NestedInnerForm>  
                 
-                </Nested1stForm>
+                </NestedOuterForm>
             </SharedFrame>
         );
     }

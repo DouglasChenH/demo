@@ -124,12 +124,47 @@ export function exportToExcel(rawData) {
                     })
                 })
             }
+            if (type === 'nested') {
+                docs.forEach(doc => {
+                    let dynamicRows = Immutable.List();
+                    
+                    doc.get('data').forEach(EEGForm => {
+                        // patient info + each EEG basic info
+                        let nestedFormRowGeneralData = dynamicSheetGeneralData.merge(EEGForm.get('general', Immutable.Map()));
+
+                        if (!EEGForm.get('dynamic')) {
+                            dynamicRows = dynamicRows.push(nestedFormRowGeneralData);
+                        }
+                        else {
+                            EEGForm.get('dynamic', Immutable.List()).forEach(resultForm => {
+                                nestedFormRowGeneralData = nestedFormRowGeneralData.merge(resultForm.get('general', Immutable.Map()));
+                                
+                                if (!resultForm.get('dynamic')) {
+                                    dynamicRows = dynamicRows.push(nestedFormRowGeneralData);
+                                }
+                                else {
+                                    resultForm.get('dynamic', Immutable.List()).forEach(innerForm => {
+                                        dynamicRows = dynamicRows.push(
+                                            nestedFormRowGeneralData.merge(innerForm.get('general', Immutable.Map()))
+                                        );
+                                    })
+                                }
+                            })
+                        }
+                    });
+
+                    const sheetKey = extractFormKeyfromDocKey(doc.get("_id"));
+                    // add the dynamic data to the excel
+                    let sheetData = excelData.get(sheetKey, Immutable.List());
+                    
+                    sheetData = sheetData.concat(dynamicRows);
+                    excelData = excelData.set(sheetKey, sheetData);
+                });
+            }
         })
 
         // format excel data
         let patientExcelData = Immutable.List();
-        
-        console.log(ICUTimeAndUsage.toJS())
 
         if (ICUTimeAndUsage.size > 0) {
             ICUTimeAndUsage.forEach((ICUUsageData, ICUTime) => {

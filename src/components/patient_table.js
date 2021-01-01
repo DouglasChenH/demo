@@ -156,8 +156,15 @@ function isValueInDoc(doc, filterName, filterConfig) {
     }
     // "nested": nested dynimic forms
     if (docType === 'nested') {
-        return false;
-       // return docData.some(map => isValueInMap(map, fieldName, filterValue, type));
+        return docData.some(map => 
+            isValueInMap(map.get('general', Immutable.Map()), fieldName, filterValue, type) ||
+                map.get('dynamic', Immutable.List()).some(firstChildForm => 
+                    isValueInMap(firstChildForm.get('general', Immutable.Map()), fieldName, filterValue, type) ||
+                        firstChildForm.get('dynamic', Immutable.List()).some(secondChildForm => 
+                            isValueInMap(secondChildForm.get('general', Immutable.Map()), fieldName, filterValue, type)
+                        )
+                )
+            );
     }
     // "files": upload/manage files
     if (docType === 'file') {
@@ -306,17 +313,7 @@ export class PatientTable extends React.Component {
         super(props);
  
         this.state = {
-            filters: Immutable.fromJS({
-                '术后48小时连续血管活性药记录': {
-                    '多巴胺 （mcg/kg/min） - ICU时间点': {
-                        formPath: "vasoactive_drugs_record",
-                        key: "ICU时间点",
-                        subformKey: "多巴胺 （mcg/kg/min）",
-                        type: "number",
-                        value: [2, 2],
-                    }
-                }
-            }),
+            filters: Immutable.Map(),
             filteredPatientDocs: Immutable.Map(),
             allDocs: Immutable.List(),
             filteredDocs: Immutable.List(),

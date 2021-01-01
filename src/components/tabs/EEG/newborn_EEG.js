@@ -389,7 +389,7 @@ export class NewbornEEG extends React.Component {
     };
 
     render() {
-        const { id, title } = this.props;
+        const { id, title, onValuesChange } = this.props;
         const { values, isLoading } = this.state;
 
         return (
@@ -406,14 +406,14 @@ export class NewbornEEG extends React.Component {
                     secondLayerFields={this.createFields()}
                     columns={5}
                     isForFilters={!id}
-                    onValuesChange={this.props.onValuesChange}
+                    onValuesChange={onValuesChange}
                     title="新生儿脑电图检查基本信息"
                 >   
                     <NestedInnerForm
                         fields={this.createResultFields()}
                         columns={3}
                         isForFilters={!id}
-                        // onValuesChange={this.onValuesChange}
+                        onValuesChange={onValuesChange}
                         title="脑电图检查结果"
                         renderChildren={'conditional'}
                     >   
@@ -422,7 +422,7 @@ export class NewbornEEG extends React.Component {
                             fields={this.createFields()}
                             columns={3}
                             isForFilters={!id}
-                            // onValuesChange={this.onValuesChange}
+                            onValuesChange={onValuesChange}
                             title="癫痫发作"
                             renderChildren={'none'}
                         /> 

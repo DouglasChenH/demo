@@ -32,21 +32,21 @@ export function Filter({onFilterValuesChange}) {
     const formKeys = Object.keys(FORM_NAME_MAP);
     let filterPanels = [];
 
-    // skip EEG in filters for now
-    formKeys.forEach(key => 
-        key !== 'EEG' && filterPanels.push(
-            <Panel header={FORM_GROUP_MAP[key]} key={key}>
-                <Collapse destroyInactivePanel expandIconPosition={"right"}>
-                    {dynamicallyGeneratePanels(FORM_NAME_MAP[key], onFilterValuesChange)}
-                </Collapse>
-            </Panel>
-        )
-    );
+    // // skip EEG in filters for now
+    // formKeys.forEach(key => 
+    //     key !== 'EEG' && filterPanels.push(
+    //         <Panel header={FORM_GROUP_MAP[key]} key={key}>
+    //             <Collapse destroyInactivePanel expandIconPosition={"right"}>
+    //                 {dynamicallyGeneratePanels(FORM_NAME_MAP[key], onFilterValuesChange)}
+    //             </Collapse>
+    //         </Panel>
+    //     )
+    // );
 
     return (
         <Collapse destroyInactivePanel expandIconPosition={"right"}>
             {filterPanels}
-            {/*
+            
             {formKeys.map(key => 
                 <Panel header={FORM_GROUP_MAP[key]} key={key}>
                     <Collapse destroyInactivePanel expandIconPosition={"right"}>
@@ -54,7 +54,7 @@ export function Filter({onFilterValuesChange}) {
                     </Collapse>
                 </Panel>
             )}
-            */}
+            
         </Collapse>
     );
 }

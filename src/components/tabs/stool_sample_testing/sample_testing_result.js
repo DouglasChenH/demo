@@ -68,10 +68,6 @@ export class SampleTestingResult extends React.Component {
                 "_attachments": attachments,
                 type: 'files',
             }
-            
-            // if (this.state._rev) {
-            //     doc._rev = this.state._rev;
-            // }
 
             // file deleting/uploading might override the _rev
             // get the latest _rev 

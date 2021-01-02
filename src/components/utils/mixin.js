@@ -50,13 +50,13 @@ export function formatExcelRowData(data) {
 
     if (Immutable.Map.isMap(data)) {
         formattedData = data.map((colValue, key) => 
-            formatTimeStringInExcel(colValue, key));
+            formatTimeOnlyString(colValue, key));
     }
 
     return formattedData;
 }
 
-export function formatTimeStringInExcel(value, key) {
+export function formatTimeOnlyString(value, key) {
     if (key.includes('日期') || key.includes('时间')) {
         // some fields includes '日期','时间', but is time only
         if (SPECIAL_TIME_FIELDS_WITH_FORMATS.includes(key)) {

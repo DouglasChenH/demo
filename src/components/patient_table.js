@@ -27,7 +27,7 @@ import {
     Tag,
 } from 'antd';
 import { Filter } from './generics/filter';
-import { extractPatientIDfromDocKey } from './utils/mixin';
+import { extractPatientIDfromDocKey, formatTimeOnlyString } from './utils/mixin';
 import { SPECIAL_TIME_FIELDS_WITH_FORMATS } from './tabs/form_list';
 
 const { Panel } = Collapse;
@@ -71,7 +71,7 @@ function parseValueToString(value, type, fieldName) {
                 if (SPECIAL_TIME_FIELDS_WITH_FORMATS.includes(fieldName)) {
                     return  data.format('HH:mm:ss');
                 }
-                return data.format('YYYY-MM-DD HH:mm');
+                return data.format('YYYY-MM-DD');
             });
             return value.toJS().join(' - ');
         }
@@ -103,9 +103,12 @@ function isValueInMap(mapData, fieldName, filterValue, type) {
         if (filterValue.size === 2) {
             const min = filterValue.first();
             const max = filterValue.last();
-
+            // date range
+            if (type.includes('date')) {
+                return min.startOf('day').isSameOrBefore(formValue) && max.endOf('day').isSameOrAfter(formValue);
+            }
             // time range
-            if (type.includes('date') || type.includes('time')) {
+            if (type === 'time') {
                 return min.isSameOrBefore(formValue) && max.isSameOrAfter(formValue);
             }
             // number range
@@ -711,7 +714,7 @@ export class PatientTable extends React.Component {
                                     key={filterName}
                                     onClose={() => this.handleFilterTagClose(formName, filterName)}
                                 >
-                                    {`${filterName}: ${parseValueToString(filterValue.value, filterValue.type, filterValue.key)}`}
+                                    {`${filterName}: ${parseValueToString(Immutable.fromJS(filterValue.value), filterValue.type, filterValue.key)}`}
                                 </Tag>
                             )
                         }

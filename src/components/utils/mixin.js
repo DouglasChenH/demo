@@ -142,20 +142,30 @@ export async function submitDataMixin(doc, id, title) {
     }
 };
 
-export async function deleteAttachmentMixin(url, filename, fieldName) {
+export async function deleteAttachmentMixin(url, filename, fieldName, rowIndex) {
     try {
         // fetch the doc
         let doc = await db.get(url);
 
         try {
             // remove the filename
-            const filenames = doc.data[fieldName];
-
-            const index = filenames.indexOf(filename);
-            const newFileList = filenames.slice();
-            newFileList.splice(index, 1);
-
-            doc.data[fieldName] = newFileList;
+            if (rowIndex !== undefined) {
+                const filenames = doc.data[rowIndex][fieldName];
+                const index = filenames.indexOf(filename);
+                const newFileList = filenames.slice();
+                
+                newFileList.splice(index, 1);
+                doc.data[rowIndex][fieldName] = newFileList;
+            }
+            else {
+                const filenames = doc.data[fieldName];
+                const index = filenames.indexOf(filename);
+                const newFileList = filenames.slice();
+                
+                newFileList.splice(index, 1);
+                doc.data[fieldName] = newFileList;
+            }
+            
             var response = await db.put(doc);
 
             // remove the attachment
@@ -189,7 +199,7 @@ export async function downloadAttachmentMixin(url, filename, fieldName) {
     } catch (err) {
         // console.log(err);
         if (err.error !== 'not_found') {
-            showError(`文件 (${filename}) 下载失败: ${err.message}`);
+            showError(`文件 (${filename}) 下载失败: 文件缺失`);
         }
         
         throw err;

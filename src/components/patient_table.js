@@ -325,7 +325,7 @@ export class PatientTable extends React.Component {
             searchedColumn: '',
             patients: Immutable.List(),
             isLoading: true,
-            isFilterOn: true,
+            isFilterOn: false,
         };
     }
 
@@ -336,7 +336,6 @@ export class PatientTable extends React.Component {
     componentDidUpdate(prevProps, prevState) {
         const { isFilterOn, filters, allDocs } = this.state;
 
-        console.log(filters.toJS())
         if (isFilterOn) {
             if (!prevState.filters.equals(filters) ||
                 !prevState.allDocs.equals(allDocs)) {
@@ -351,13 +350,11 @@ export class PatientTable extends React.Component {
                 include_docs: true,
             });
 
-            console.log(result)
             // let userData;
             const patientsData = result.rows
                 .filter(row => row.key.includes('patient_info'))
                 .map(row => row.doc);
 
-            console.log(patientsData, result)
             this.setState({
                 allDocs: Immutable.fromJS(result.rows),
                 patients: Immutable.fromJS(patientsData),
@@ -390,7 +387,6 @@ export class PatientTable extends React.Component {
             });
         }
 
-        console.log(filteredForms.toJS())
         // filter out the matched form which includes this value
         const matchedDocs = allDocs
             .filter(record => 
@@ -468,7 +464,6 @@ export class PatientTable extends React.Component {
             }
         })
 
-        console.log(filteredPatientDocs.toJS())
         this.setState({
             filteredForms,
             filteredPatientDocs,

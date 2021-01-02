@@ -64,6 +64,7 @@ export class DynamicForm extends React.Component {
                 })(
                     <InputComponent
                         field={field}
+                        rowIndex={rowIndex}
                         isForFilters={this.props.isForFilters}
                         triggerAutoBinding={(bindings) => this.triggerAutoBinding(bindings, rowIndex)}
                     />

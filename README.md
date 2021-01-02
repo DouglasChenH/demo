@@ -5,11 +5,12 @@
 	PouchDB: https://pouchdb.com/api.html#overview
 	Electron: https://www.electronjs.org/docs
 
-## Install
+## Install & Development
 1. install Node.js & npm(https://nodejs.org/en/)
 2. run "npm install" under the project folder
 3. run "npm run start" to run the app in the development mode, and
 open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+4. run "npm run electron-start" to run the app in the desktop app.
 
 ## Build
 1. change line 11 Product Name in the package.json to rename the application

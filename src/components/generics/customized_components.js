@@ -131,7 +131,7 @@ export class InputComponent extends React.Component {
     };
 
     render() {
-        const { field, value, isForFilters } = this.props;
+        const { field, value, isForFilters, rowIndex } = this.props;
         const type = field.get('type');
         const options = field.get('options');
         const disabled = field.get('disabled', false);
@@ -143,7 +143,7 @@ export class InputComponent extends React.Component {
                 onRemove: file => {
                     // remove it from the db
                     if (file.status === 'done') {
-                        deleteAttachmentMixin(file.url, file.name, file.fieldName);
+                        deleteAttachmentMixin(file.url, file.name, file.fieldName, rowIndex);
                     }
 
                     const index = value.indexOf(file);

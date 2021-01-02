@@ -1,7 +1,7 @@
 import XLSX from 'xlsx';
 import Immutable from "immutable";
 import { FORM_NAME_TRANSLATOR } from '../tabs/form_list';
-import { extractFormKeyfromDocKey } from './mixin';
+import { extractFormKeyfromDocKey, formatExcelRowData } from './mixin';
 
 function Workbook() {
     if (!(this instanceof Workbook))
@@ -34,7 +34,6 @@ function s2ab(s) {
 }
 
 export function exportToExcel(rawData) {
-    console.log(rawData.toJS())
     let excelData = Immutable.Map();
 
     //  data = {
@@ -74,7 +73,7 @@ export function exportToExcel(rawData) {
             if (type === 'dynamic') {
                 docs.forEach(doc => {
                     const dynamicRows = doc.get('data').map(row => 
-                        dynamicSheetGeneralData.merge(row)
+                        formatExcelRowData(dynamicSheetGeneralData.merge(row))
                     );
                     const sheetKey = extractFormKeyfromDocKey(doc.get("_id"));
                     // add the dynamic data to the excel
@@ -90,7 +89,7 @@ export function exportToExcel(rawData) {
                     const mixedSheetGeneralData =  dynamicSheetGeneralData.merge(generalData);
 
                     const dynamicRows = doc.getIn(['data', 'dynamic'], Immutable.List()).map(row => 
-                        mixedSheetGeneralData.merge(row)
+                        formatExcelRowData(mixedSheetGeneralData.merge(row))
                     );
 
                     const sheetKey = extractFormKeyfromDocKey(doc.get("_id"));
@@ -157,7 +156,7 @@ export function exportToExcel(rawData) {
                     // add the dynamic data to the excel
                     let sheetData = excelData.get(sheetKey, Immutable.List());
                     
-                    sheetData = sheetData.concat(dynamicRows);
+                    sheetData = sheetData.concat(dynamicRows.map(row => formatExcelRowData(row)));
                     excelData = excelData.set(sheetKey, sheetData);
                 });
             }
@@ -173,12 +172,12 @@ export function exportToExcel(rawData) {
                     .set('ICU时间点', ICUTime)
                     .merge(rowGeneralData)
                     .merge(ICUUsageData);
-                patientExcelData = patientExcelData.push(patientRowData);
+                patientExcelData = patientExcelData.push(formatExcelRowData(patientRowData));
             })
         }
         // all general forms
         else {
-            patientExcelData = patientExcelData.push(rowGeneralData);
+            patientExcelData = patientExcelData.push(formatExcelRowData(rowGeneralData));
         }
         
         console.log(patientExcelData.toJS())
@@ -196,7 +195,7 @@ export function exportToExcel(rawData) {
     let sheetName;
 
     excelData.forEach((sheet, sheetKey) => {
-        sheetName = FORM_NAME_TRANSLATOR[sheetKey];
+        sheetName = sheetKey === 'general' ? '静态表单' : FORM_NAME_TRANSLATOR[sheetKey];
         // replace "/" by '、' in the name
         sheetName = sheetName && sheetName.replace(/\//gi, '、');
         sheetWS = XLSX.utils.json_to_sheet(sheet.toJS());

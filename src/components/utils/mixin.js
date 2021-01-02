@@ -2,7 +2,10 @@ import moment from 'moment';
 import Immutable from "immutable";
 import { db } from '../../db/database';
 import { showSuccess, showError } from './notification';
-import { SPECIAL_MOMENT_FIELDS_NOT_TIME_FORMATS } from '../tabs/form_list';
+import {
+    SPECIAL_MOMENT_FIELDS_NOT_TIME_FORMATS,
+    SPECIAL_TIME_FIELDS_WITH_FORMATS
+} from '../tabs/form_list';
 
 
 export function extractPatientIDfromDocKey(key) {
@@ -40,6 +43,28 @@ export function downloadBlob(blob, name = 'file.txt') {
 
     // Remove link from body
     document.body.removeChild(link);
+}
+
+export function formatExcelRowData(data) {
+    let formattedData = data;
+
+    if (Immutable.Map.isMap(data)) {
+        formattedData = data.map((colValue, key) => 
+            formatTimeStringInExcel(colValue, key));
+    }
+
+    return formattedData;
+}
+
+export function formatTimeStringInExcel(value, key) {
+    if (key.includes('日期') || key.includes('时间')) {
+        // some fields includes '日期','时间', but is time only
+        if (SPECIAL_TIME_FIELDS_WITH_FORMATS.includes(key)) {
+            return value.slice(-8);
+        }   
+    }
+
+    return value;
 }
 
 // convert time string to moment

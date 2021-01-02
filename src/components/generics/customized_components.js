@@ -138,49 +138,45 @@ export class InputComponent extends React.Component {
         const isFutureDateAllowed = field.get('isFutureDateAllowed', false);
 
         if (type === 'file') {
-            if (isForFilters) {
-                return null;
-            }
-            else {
-                const props = {
-                    onRemove: file => {
-                        // remove it from the db
-                        if (file.status === 'done') {
-                            deleteAttachmentMixin(file.url, file.name, file.fieldName);
-                        }
+            const props = {
+                disabled: isForFilters,
+                onRemove: file => {
+                    // remove it from the db
+                    if (file.status === 'done') {
+                        deleteAttachmentMixin(file.url, file.name, file.fieldName);
+                    }
 
-                        const index = value.indexOf(file);
-                        const newFileList = value.delete(index);
+                    const index = value.indexOf(file);
+                    const newFileList = value.delete(index);
 
-                        this.triggerChange(newFileList);
-                    },
-                    onPreview: file => {
-                        // load it from the db
-                        if (file.status === 'done') {
-                            downloadAttachmentMixin(file.url, file.name, file.fieldName);
-                        }
-                        else {
-                            downloadBlob(file, file.name);
-                        } 
-                    },
-                    beforeUpload: file => {
-                        this.triggerChange(Immutable.List.isList(value) ? value.push(file) : Immutable.List([file]));
-                    },
-                    customRequest: () => {},
-                    fileList: Immutable.List.isList(value) ? value.toJS() : [],
-                    // listType: "picture",
-                };
+                    this.triggerChange(newFileList);
+                },
+                onPreview: file => {
+                    // load it from the db
+                    if (file.status === 'done') {
+                        downloadAttachmentMixin(file.url, file.name, file.fieldName);
+                    }
+                    else {
+                        downloadBlob(file, file.name);
+                    } 
+                },
+                beforeUpload: file => {
+                    this.triggerChange(Immutable.List.isList(value) ? value.push(file) : Immutable.List([file]));
+                },
+                customRequest: () => {},
+                fileList: Immutable.List.isList(value) ? value.toJS() : [],
+                // listType: "picture",
+            };
 
-                return (
-                    <Upload 
-                        {...props}
-                    >
-                        <Button>
-                            <Icon type="upload" /> Click to upload
-                        </Button>
-                    </Upload>
-                )
-            }
+            return (
+                <Upload 
+                    {...props}
+                >
+                    <Button disabled={isForFilters}>
+                        <Icon type="upload" /> Click to upload
+                    </Button>
+                </Upload>
+            ); 
         }
         if (type === 'number') {
             const suffix = field.get('suffix');

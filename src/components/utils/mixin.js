@@ -4,7 +4,8 @@ import { db } from '../../db/database';
 import { showSuccess, showError } from './notification';
 import {
     SPECIAL_MOMENT_FIELDS_NOT_TIME_FORMATS,
-    SPECIAL_TIME_FIELDS_WITH_FORMATS
+    SPECIAL_TIME_FIELDS_WITH_FORMATS,
+    SPECIAL_FILE_FIELDS,
 } from '../tabs/form_list';
 
 
@@ -49,8 +50,19 @@ export function formatExcelRowData(data) {
     let formattedData = data;
 
     if (Immutable.Map.isMap(data)) {
-        formattedData = data.map((colValue, key) => 
-            formatTimeOnlyString(colValue, key));
+        formattedData = data.map((colValue, key) => {
+            if (key.includes('日期') || key.includes('时间')) {
+                // some fields includes '日期','时间', but is time only
+                if (SPECIAL_TIME_FIELDS_WITH_FORMATS.includes(key)) {
+                    return colValue.slice(-8);
+                }
+            }
+            if (SPECIAL_FILE_FIELDS.includes(key)) {
+                return "";
+            }
+
+            return colValue;
+        });
     }
 
     return formattedData;

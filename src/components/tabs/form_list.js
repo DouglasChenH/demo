@@ -107,6 +107,16 @@ export const SPECIAL_TIME_FIELDS_WITH_FORMATS = [
     "记录时间",
 ];
 
+export const SPECIAL_FILE_FIELDS = [
+    "MRI报告",
+    "MRI原始文件",
+    "手术总名单",
+    "组织标本库入库名单",
+    "血液标本库入库名单",
+    "mostcare 原始数据",
+    "INVOS 原始数据",
+];
+
 export const FORM_GROUP_MAP = {
     main: '首页',
     patient_info: '患者基本信息',

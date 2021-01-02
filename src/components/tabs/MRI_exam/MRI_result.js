@@ -45,7 +45,6 @@ export class MRIResult extends React.Component {
                     });
                 })
                 
-                console.log(values)
                 this.setState({
                     values: Immutable.fromJS(values),
                     _rev: doc._rev,

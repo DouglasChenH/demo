@@ -253,7 +253,6 @@ export class HospitalStayInfo extends React.Component {
         const { id, title, onValuesChange } = this.props;
         const { values, isLoading } = this.state;
 
-        console.log(values && values.toJS())
         return (
             <SharedFrame
                 title={title}

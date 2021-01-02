@@ -123,7 +123,6 @@ export class NestedInnerForm extends React.Component {
             const flagValue = this.props.form.getFieldValue(`脑电图癫痫[${index}]`);
 
             if (flagValue === '癫痫发作' || flagValue === '持续性癫痫') {
-                console.log(this.state.records.toJS(), this.state.records.getIn([index, 'dynamic'], Immutable.List()).toJS())
                 const children = React.cloneElement(
                     this.props.children,
                     { 

@@ -192,7 +192,6 @@ export class NestedOuterForm extends React.Component {
         }
         // updating the second child
         if (index.size === 2) {
-            console.log(formValues.toJS())
             // second child
             if (!formValues.getIn([index.first(), 'dynamic'])) {
                 formValues = formValues.setIn([index.first(), 'dynamic'], Immutable.List());
@@ -201,25 +200,20 @@ export class NestedOuterForm extends React.Component {
             if (!formValues.getIn([index.first(), 'dynamic', index.last(), 'dynamic'])) {
                 formValues = formValues.setIn([index.first(), 'dynamic', index.last(), 'dynamic'], Immutable.List());
             }
-            console.log(formValues.toJS())
             const updatedValues = formatFormValues(Immutable.fromJS(allValues), this.props.secondLayerFields);
 
             updatedValues.forEach((secondChildValues, secondChildIndex) => {
                 formValues = formValues.setIn([index.first(), 'dynamic', index.last(), 'dynamic', secondChildIndex, 'general'], secondChildValues);
                 // formValues = formValues.setIn([index.first(), 'dynamic', firstChildIndex, 'general'], updatedValues);
             })
-            console.log(formValues.toJS())
         }
         
         this.setState({
             records: formValues
         })
-        console.log(formValues.toJS())
-    
     };
 
     onTabChange = activeKey => {
-        console.log(activeKey)
         this.setState({ activeKey });
     };
 

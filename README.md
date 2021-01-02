@@ -13,7 +13,7 @@ open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 4. run "npm run electron-start" to run the app in the desktop app.
 
 ## Build
-1. change line 11 Product Name in the package.json to rename the application
+1. change line 11 Product Name in the package.json to rename the application.
 2. run "npm electron-build" under the project folder
 3. check the dist folder under the project folder
 

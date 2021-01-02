@@ -28,7 +28,6 @@ const { Option } = Select;
 
 export class CoreConfigFormB extends React.Component {
     normFile = e => {
-        console.log('Upload event:', e);
         if (Array.isArray(e)) {
           return e;
         }
@@ -120,7 +119,6 @@ export class CoreConfigForm extends React.Component {
         }
         if (startTime && startTime !== null && endTime && endTime !== null) {
             if (field.includes('start_time')) {
-                console.log(startTime.isSameOrAfter(endTime))
                 return startTime.isSameOrAfter(endTime) ? "error" : null;
             }
             else {
@@ -424,7 +422,6 @@ export class SingleForm extends React.Component {
     fetchData = async(id) => {
         try {
             var doc = await this.props.db.get(`singleA:user_${id}`);
-            console.log(doc);
 
             let records = Immutable.fromJS(doc.records);
             records = records.map(config => 
@@ -451,7 +448,6 @@ export class SingleForm extends React.Component {
     };
 
     submitData = async (doc) => {
-        console.log('submit ',doc)
         this.setState({
             isSubmitting: true,
         });

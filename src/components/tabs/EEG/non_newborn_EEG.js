@@ -373,7 +373,7 @@ export class NonNewbornEEG extends React.Component {
                         fields={this.createResultFields()}
                         columns={3}
                         isForFilters={!id}
-                        // onValuesChange={this.onValuesChange}
+                        onValuesChangeForFilters={this.props.onValuesChange}
                         title="脑电图检查结果"
                         renderChildren={'conditional'}
                     >   
@@ -382,7 +382,7 @@ export class NonNewbornEEG extends React.Component {
                             fields={this.createFields()}
                             columns={3}
                             isForFilters={!id}
-                            // onValuesChange={this.onValuesChange}
+                            onValuesChangeForFilters={this.props.onValuesChange}
                             title="癫痫发作"
                             renderChildren={'none'}
                         /> 

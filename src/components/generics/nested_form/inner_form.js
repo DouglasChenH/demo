@@ -239,6 +239,7 @@ export class NestedInnerForm extends React.Component {
 
 function onValuesChange(props, changedValues, allValues) {
     if (props.isForFilters) {
+        console.log('1')
         const fieldName = Object.keys(changedValues)[0];
         const fieldValue = changedValues[fieldName][0];
 
@@ -250,9 +251,9 @@ function onValuesChange(props, changedValues, allValues) {
         if (changedRow) {
             const changedField = changedRow.find(col => col.get('name') === fieldName);
             if (changedField) {
-                props.onValuesChange(fieldName, fieldValue, changedField.get('type'))
+                console.log(2)
+                props.onValuesChangeForFilters(fieldName, fieldValue, changedField.get('type'))
             }
-            
         }
     }
     else {
@@ -267,6 +268,7 @@ NestedInnerForm = Form.create({
 NestedInnerForm.propTypes = {
     isForFilters: PropTypes.bool,
     onValuesChange: PropTypes.func,
+    onValuesChangeForFilters: PropTypes.func,
     fields: PropTypes.instanceOf(Immutable.List),
     values: PropTypes.instanceOf(Immutable.List),
     columns: PropTypes.number,
@@ -277,6 +279,7 @@ NestedInnerForm.propTypes = {
 NestedInnerForm.defaultProps = {
     isForFilters: false,
     onValuesChange: () => {},
+    onValuesChangeForFilters: () => {},
     fields: Immutable.List([Immutable.Map()]),
     values: Immutable.List([Immutable.Map()]),
     columns: 3,

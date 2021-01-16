@@ -437,7 +437,6 @@ export class PatientTable extends React.Component {
         let patientInfoDoc = Immutable.Map();
         let filteredPatientDocs = Immutable.Map();
         
-        
         matchedRecordsToPatients.forEach((records, patientID) => {
             if (records.size === filteredFormsSize) {
                 let catgorizedDocs = Immutable.Map();
